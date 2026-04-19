@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1380" width="1680" height="1380">
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+  </marker>
+  <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#1f6feb"/>
+  </marker>
+</defs>
+
+<rect x="0" y="0" width="1680" height="1380" fill="#FFFFFF"/>
+<rect x="0" y="0" width="300" height="1380" rx="0" ry="0" fill="#FAFAFA" stroke="#666" stroke-width="1.2"/>
+<rect x="0" y="0" width="300" height="46" rx="0" ry="0" fill="#EDEFF2" stroke="#666" stroke-width="1.2"/>
+<text x="150.0" y="23.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="15" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="bold">信贷系统</text>
+<rect x="300" y="0" width="540" height="1380" rx="0" ry="0" fill="#FAFAFA" stroke="#666" stroke-width="1.2"/>
+<rect x="300" y="0" width="540" height="46" rx="0" ry="0" fill="#EDEFF2" stroke="#666" stroke-width="1.2"/>
+<text x="570.0" y="23.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="15" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="bold">智慧尽调移动端（H5）</text>
+<rect x="840" y="0" width="540" height="1380" rx="0" ry="0" fill="#FAFAFA" stroke="#666" stroke-width="1.2"/>
+<rect x="840" y="0" width="540" height="46" rx="0" ry="0" fill="#EDEFF2" stroke="#666" stroke-width="1.2"/>
+<text x="1110.0" y="23.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="15" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="bold">智慧尽调PC端</text>
+<rect x="1380" y="0" width="300" height="1380" rx="0" ry="0" fill="#FAFAFA" stroke="#666" stroke-width="1.2"/>
+<rect x="1380" y="0" width="300" height="46" rx="0" ry="0" fill="#EDEFF2" stroke="#666" stroke-width="1.2"/>
+<text x="1530.0" y="23.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="15" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="bold">智能体平台</text>
+<ellipse cx="570.0" cy="86" rx="45" ry="18" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="86.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">开始</text>
+<rect x="50.0" y="69.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="150.0" y="96.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">1.1 信贷系统发起尽调</text>
+<rect x="460.0" y="121.0" width="220" height="70" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="147.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">1.2 移动端发起尽调</text>
+<text x="570.0" y="164.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(录入借款人、关联人)</text>
+<rect x="1010.0" y="129.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="1110.0" y="156.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">2.1 创建尽调任务</text>
+<polyline points="250.0,96 1010.0,156" fill="none" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<text x="570.0" y="88" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">API接口</text>
+<line x1="570.0" y1="104" x2="570.0" y2="121.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="199.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="226.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">2.2 创建尽调任务</text>
+<line x1="570.0" y1="191.0" x2="570.0" y2="199.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="1010.0" y="199.0" width="200" height="54" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1110.0" y="226.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">风险初筛服务</text>
+<polyline points="670.0,226 1010.0,226" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<text x="840.0" y="218" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">后台服务调用</text>
+<rect x="1010.0" y="271.0" width="200" height="70" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="1110.0" y="297.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">3.1 风险初筛处理</text>
+<text x="1110.0" y="314.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(录入管控措施)</text>
+<line x1="1110.0" y1="253.0" x2="1110.0" y2="271.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="271.0" width="200" height="70" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="297.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">3.2 风险初筛处理</text>
+<text x="570.0" y="314.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(录入管控措施)</text>
+<polyline points="1010.0,306 670.0,306" fill="none" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="349.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="376.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">4. 现场尽调</text>
+<line x1="570.0" y1="341.0" x2="570.0" y2="349.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="413.0" width="200" height="66" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="437.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">5. 关联人补充</text>
+<text x="570.0" y="454.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(可选)</text>
+<line x1="570.0" y1="403.0" x2="570.0" y2="413.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="489.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="516.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">6. 模板分案</text>
+<line x1="570.0" y1="479.0" x2="570.0" y2="489.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="1010.0" y="489.0" width="200" height="54" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1110.0" y="516.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">模板分案服务</text>
+<polyline points="670.0,516 1010.0,516" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<text x="840.0" y="508" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">后端服务调用</text>
+<rect x="1010.0" y="569.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="1110.0" y="596.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">6. 模板分案</text>
+<line x1="1110.0" y1="543.0" x2="1110.0" y2="569.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="631.0" width="200" height="70" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="657.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">7. 调查问卷</text>
+<text x="570.0" y="674.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(文字、图片、音频)</text>
+<line x1="570.0" y1="543.0" x2="570.0" y2="631.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="1010.0" y="632.0" width="200" height="68" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1110.0" y="657.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">模板问卷配置服务</text>
+<text x="1110.0" y="674.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(问题、要求)</text>
+<polyline points="670.0,666 1010.0,666" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<text x="840.0" y="658" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">后端服务调用</text>
+<rect x="640.0" y="713.0" width="140" height="46" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="710.0" y="736.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">引导式问卷</text>
+<polyline points="670.0,670 710.0,670 710.0,713.0" fill="none" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="769.0" width="200" height="74" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="797.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">8. 资料采集、质检</text>
+<text x="570.0" y="814.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(上传、分类、质检、识别)</text>
+<polyline points="710.0,759.0 710.0,796 670.0,796 670.0,771.0" fill="none" stroke="#333" stroke-width="1.4"/>
+<polyline points="570.0,701.0 570.0,769.0" fill="none" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="1010.0" y="779.0" width="200" height="54" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1110.0" y="806.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">资料分类识别服务</text>
+<polyline points="670.0,816 1010.0,816" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<rect x="1440.0" y="779.0" width="180" height="54" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1530.0" y="806.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">资料识别智能体</text>
+<polyline points="1210.0,806 1440.0,806" fill="none" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<text x="1320.0" y="798" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">API调用</text>
+<rect x="1010.0" y="849.0" width="200" height="74" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="1110.0" y="877.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">8. 资料采集</text>
+<text x="1110.0" y="894.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(上传、分类、质检、识别)</text>
+<line x1="1110.0" y1="833.0" x2="1110.0" y2="849.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="470.0" y="923.0" width="200" height="66" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="947.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">9. 生成报告</text>
+<text x="570.0" y="964.5" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(生产、查看PDF)</text>
+<line x1="570.0" y1="843.0" x2="570.0" y2="923.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="1010.0" y="929.0" width="200" height="54" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1110.0" y="956.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">报告生成服务</text>
+<polyline points="670.0,956 1010.0,956" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+<text x="840.0" y="948" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">后端服务调用</text>
+<rect x="1440.0" y="929.0" width="180" height="54" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1530.0" y="956.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">报告生成智能体</text>
+<polyline points="1210.0,956 1440.0,956" fill="none" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<text x="1320.0" y="948" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#333" text-anchor="middle">API调用</text>
+<rect x="1010.0" y="999.0" width="200" height="54" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="1110.0" y="1026.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">9. 生成报告</text>
+<line x1="1110.0" y1="983.0" x2="1110.0" y2="999.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="460.0" y="1071.0" width="220" height="90" rx="6" ry="6" fill="#E6F4FF" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="570.0" y="1099.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">10. 报告关联</text>
+<text x="570.0" y="1116.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(选择授信业务，</text>
+<text x="570.0" y="1133.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">提交关联)</text>
+<line x1="570.0" y1="989.0" x2="570.0" y2="1071.0" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="1005.0" y="1071.0" width="210" height="90" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="1110.0" y="1116.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle" dominant-baseline="middle" font-weight="normal">尽调任务关联服务</text>
+<rect x="50.0" y="1066.0" width="200" height="100" rx="6" ry="6" fill="#E6F4FF" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="150.0" y="1099.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">授信业务查询接口</text>
+<text x="150.0" y="1116.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">关联结果回写接口</text>
+<text x="150.0" y="1133.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">(被尽调系统调用)</text>
+<polyline points="680.0,1089.0 1005.0,1089.0" fill="none" stroke="#1f6feb" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow-blue)"/>
+<text x="840.0" y="1080.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle" font-weight="normal">① 查询可关联授信业务 / ③ 提交关联</text>
+<polyline points="1005.0,1143.0 680.0,1143.0" fill="none" stroke="#1f6feb" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow-blue)"/>
+<text x="840.0" y="1155.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle" font-weight="normal">② 返回授信业务列表 / ④ 返回关联结果</text>
+<polyline points="1005.0,1089.0 250.0,1089.0" fill="none" stroke="#1f6feb" stroke-width="1.4" marker-end="url(#arrow-blue)"/>
+<text x="630.0" y="1080.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle" font-weight="normal">API调用（尽调→信贷）</text>
+<polyline points="250.0,1143.0 1005.0,1143.0" fill="none" stroke="#1f6feb" stroke-width="1.4" marker-end="url(#arrow-blue)"/>
+<text x="630.0" y="1155.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="11" fill="#1f6feb" text-anchor="middle" dominant-baseline="middle" font-weight="normal">返回数据 / 关联结果</text>
+<ellipse cx="570.0" cy="1211" rx="45" ry="18" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="570.0" y="1211.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="normal">结束</text>
+<line x1="570.0" y1="1161.0" x2="570.0" y2="1193" stroke="#333" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="30" y="1230" width="420" height="120" rx="6" ry="6" fill="#FFFFFF" stroke="#888" stroke-width="1.2"/>
+<text x="240" y="1248.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="14" fill="#222" text-anchor="middle" dominant-baseline="middle" font-weight="bold">图例</text>
+<rect x="50" y="1266" width="40" height="22" rx="6" ry="6" fill="#FFFFFF" stroke="#333" stroke-width="1.2"/>
+<text x="120" y="1277.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="start" dominant-baseline="middle" font-weight="normal">前端页面/业务节点</text>
+<rect x="50" y="1296" width="40" height="22" rx="6" ry="6" fill="#F6A623" stroke="#B8751A" stroke-width="1.2"/>
+<text x="120" y="1307.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="start" dominant-baseline="middle" font-weight="normal">后端/智能体服务</text>
+<rect x="250" y="1266" width="40" height="22" rx="6" ry="6" fill="#E6F4FF" stroke="#1f6feb" stroke-width="1.2"/>
+<text x="320" y="1277.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#1f6feb" text-anchor="start" dominant-baseline="middle" font-weight="normal">本次变更的节点</text>
+<line x1="250" y1="1310" x2="290" y2="1310" stroke="#333" stroke-width="1.4" stroke-dasharray="5,4"/>
+<text x="320" y="1310.0" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-size="13" fill="#222" text-anchor="start" dominant-baseline="middle" font-weight="normal">异步/后台服务调用</text>
+</svg>
