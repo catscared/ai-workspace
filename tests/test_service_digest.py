@@ -19,14 +19,15 @@ def test_build_hotspot_digest_includes_title_insight_and_link() -> None:
                 "url": "https://example.com/signal",
                 "confidence": 0.91,
                 "score": 9.1,
+                "event_zh": "这是中文事件要点",
                 "insight_zh": "这是中文深度观点",
                 "channel": "news",
             }
         ],
     )
-    assert "标题: Test signal" in message
-    assert "AI观点:\n这是中文深度观点" in message
-    assert "Link:\nhttps://example.com/signal" in message
+    assert "标题: Test signal (https://example.com/signal)" in message
+    assert "事件要点（中文解读）:\n这是中文事件要点" in message
+    assert "AI深度观点:\n这是中文深度观点" in message
 
 
 def test_build_hotspot_digest_groups_by_channel() -> None:
@@ -40,6 +41,7 @@ def test_build_hotspot_digest_groups_by_channel() -> None:
                 "url": "https://x.com/abc/status/1",
                 "confidence": 0.8,
                 "score": 8.0,
+                "event_zh": "KOL 事件要点",
                 "insight_zh": "KOL insight",
                 "channel": "x_kol",
             },
@@ -48,6 +50,7 @@ def test_build_hotspot_digest_groups_by_channel() -> None:
                 "url": "https://news.example.com/1",
                 "confidence": 0.7,
                 "score": 7.0,
+                "event_zh": "News 事件要点",
                 "insight_zh": "News insight",
                 "channel": "news",
             },
