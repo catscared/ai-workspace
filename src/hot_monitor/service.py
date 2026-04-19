@@ -11,7 +11,9 @@ from .integrations.telegram_bot import TelegramBotClient
 from .sources.defillama import fetch_defillama_items
 from .sources.dune import fetch_dune_items
 from .sources.github_releases import fetch_github_release_items
+from .sources.github_trending import fetch_github_trending_items
 from .sources.news_rss import fetch_news_items
+from .sources.source_grouping import channel_title, resolve_channel
 from .sources.x_client import XClient
 
 
@@ -47,7 +49,20 @@ class HotMonitorService:
         run_hotspots: list[dict[str, Any]] = []
 
         batch_items: list[dict[str, Any]] = []
-        batch_items.extend(fetch_news_items(self.settings.news_rss_feeds))
+        batch_items.extend(
+            fetch_news_items(
+                self.settings.news_rss_feeds,
+                source_type="news",
+                channel="news",
+            )
+        )
+        batch_items.extend(
+            fetch_news_items(
+                self.settings.chain_news_feeds,
+                source_type="chain_news",
+                channel="chain_news",
+            )
+        )
         if self.settings.defillama_enabled:
             try:
                 batch_items.extend(fetch_defillama_items())
@@ -71,6 +86,18 @@ class HotMonitorService:
             )
         except Exception:
             pass
+        if self.settings.github_trending_enabled:
+            try:
+                batch_items.extend(
+                    fetch_github_trending_items(
+                        query=self.settings.github_trending_query,
+                        token=self.settings.github_token,
+                        max_results=self.settings.github_trending_max_results,
+                        min_stars=self.settings.github_trending_min_stars,
+                    )
+                )
+            except Exception:
+                pass
 
         try:
             batch_items.extend(
@@ -82,6 +109,17 @@ class HotMonitorService:
         except Exception:
             # X API is optional for MVP; failures should not stop news collection.
             pass
+
+        for handle in self.settings.x_default_kol_handles:
+            try:
+                batch_items.extend(
+                    self.x_client.fetch_user_recent_posts(
+                        handle,
+                        max_results=self.settings.x_kol_max_results,
+                    )
+                )
+            except Exception:
+                continue
 
         targets = self.db.list_watch_targets()
         kols = self.db.list_kol_accounts(min_followers=self.settings.kol_min_followers)
@@ -118,9 +156,9 @@ class HotMonitorService:
                     raw_item_id=raw_item_id,
                     score=score,
                     category=semantic.category,
-                    summary=f"{semantic.summary_zh} | {semantic.summary_en}",
+                    summary=semantic.summary_zh,
                     summary_zh=semantic.summary_zh,
-                    summary_en=semantic.summary_en,
+                    summary_en="",
                     confidence=semantic.confidence,
                 )
                 run_hotspots.append(
@@ -129,10 +167,8 @@ class HotMonitorService:
                         "url": item.get("url"),
                         "confidence": float(semantic.confidence),
                         "score": score,
-                        "title_zh": semantic.title_zh,
-                        "title_en": semantic.title_en,
                         "insight_zh": semantic.insight_zh,
-                        "insight_en": semantic.insight_en,
+                        "channel": resolve_channel(item),
                     }
                 )
                 hotspots_detected += 1
@@ -196,33 +232,50 @@ class HotMonitorService:
         return self._last_telegram_digest
 
     def _build_hotspot_digest(self, *, hotspots: list[dict[str, Any]]) -> str:
-        ranked = sorted(
+        ranked_all = sorted(
             hotspots,
             key=lambda item: (float(item.get("confidence") or 0), float(item.get("score") or 0)),
             reverse=True,
-        )[: max(1, self.settings.telegram_hotspot_push_limit)]
+        )
 
-        lines = ["AI Hotspot Insights / AI热点深度观点"]
-        if not ranked:
+        lines = ["AI热点洞察"]
+        if not ranked_all:
             lines.append("No hotspot detected / 本轮无热点")
             return "\n".join(lines)
 
-        for idx, hotspot in enumerate(ranked, start=1):
-            evidence_link = str(hotspot.get("url") or "").strip() or "N/A"
-            title_zh = str(hotspot.get("title_zh") or hotspot.get("title") or "未命名热点")
-            title_en = str(hotspot.get("title_en") or hotspot.get("title") or "Untitled hotspot")
-            if len(evidence_link) > 400:
-                evidence_link = evidence_link[:400].rstrip() + "..."
-            lines.extend(
-                [
-                    "",
-                    f"{idx}) 标题: {title_zh}",
-                    f"   Title: {title_en}",
-                    f"   AI观点(中文): {hotspot.get('insight_zh') or hotspot.get('summary_zh') or '暂无中文观点'}",
-                    f"   AI Insight(EN): {hotspot.get('insight_en') or hotspot.get('summary_en') or 'No English insight'}",
-                    f"   Link: {evidence_link}",
-                ]
-            )
+        grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for item in ranked_all:
+            grouped[str(item.get("channel") or "other")].append(item)
+
+        channel_priority = [
+            "news",
+            "chain_news",
+            "x_kol",
+            "x",
+            "github_trending",
+            "github_release",
+            "dune",
+            "defillama",
+            "other",
+        ]
+        ordered_channels = [ch for ch in channel_priority if ch in grouped] + [
+            ch for ch in sorted(grouped.keys()) if ch not in channel_priority
+        ]
+        for channel in ordered_channels:
+            channel_items = grouped[channel][: max(1, self.settings.telegram_hotspot_push_limit)]
+            lines.extend(["", f"【{channel_title(channel)}】"])
+            for idx, hotspot in enumerate(channel_items, start=1):
+                evidence_link = str(hotspot.get("url") or "").strip() or "N/A"
+                title = str(hotspot.get("title") or "未命名热点")
+                if len(evidence_link) > 400:
+                    evidence_link = evidence_link[:400].rstrip() + "..."
+                lines.extend(
+                    [
+                        f"{idx}) 标题: {title}",
+                        f"   AI观点: {hotspot.get('insight_zh') or hotspot.get('summary_zh') or '暂无AI观点'}",
+                        f"   Link: {evidence_link}",
+                    ]
+                )
         message = "\n".join(lines).strip()
         if len(message) > 3800:
             return message[:3790] + "\n..."

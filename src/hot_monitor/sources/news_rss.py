@@ -24,7 +24,20 @@ def _to_iso8601(value: Any) -> str | None:
     return dt.astimezone(timezone.utc).isoformat()
 
 
-def fetch_news_items(feeds: tuple[str, ...], max_per_feed: int = 20) -> list[dict[str, Any]]:
+def _domain_from_url(url: str | None) -> str:
+    if not url:
+        return "unknown"
+    normalized = url.replace("https://", "").replace("http://", "")
+    domain = normalized.split("/", 1)[0].strip().lower()
+    return domain or "unknown"
+
+
+def fetch_news_items(
+    feeds: tuple[str, ...],
+    max_per_feed: int = 20,
+    source_type: str = "news",
+    channel: str = "news",
+) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     for feed_url in feeds:
         parsed = feedparser.parse(feed_url)
@@ -48,7 +61,7 @@ def fetch_news_items(feeds: tuple[str, ...], max_per_feed: int = 20) -> list[dic
             )
             items.append(
                 {
-                    "source_type": "news",
+                    "source_type": source_type,
                     "external_id": str(external_id),
                     "title": entry.get("title"),
                     "content": content,
@@ -57,7 +70,11 @@ def fetch_news_items(feeds: tuple[str, ...], max_per_feed: int = 20) -> list[dic
                     "url": entry.get("link"),
                     "published_at": published,
                     "engagement": 0,
-                    "metadata": {"feed": feed_url},
+                    "metadata": {
+                        "feed": feed_url,
+                        "publisher_domain": _domain_from_url(entry.get("link")),
+                        "channel": channel,
+                    },
                 }
             )
     return items

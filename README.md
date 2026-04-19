@@ -7,7 +7,7 @@
 - 支持添加 **项目/代币监控目标**
 - 支持添加并绑定 **X 上 KOL（followers > 20w）**，进行热点监控
 - 支持 **Telegram 推送 + Telegram 指令控制任务启停**
-- 支持 **中英双语 LLM 语义分类**（无 Key 自动降级规则分类）
+- 支持 **LLM 语义分类 + 中文 AI 深度观点**（无 Key 自动降级规则分析）
 
 ## 功能概览
 
@@ -19,9 +19,9 @@
    - GitHub Release（可配置 repo 列表）
 
 2. **热点识别**
-   - LLM 语义分类（中英双语摘要 + adoption 判定 + 置信度）
-   - 无 LLM Key 时自动使用规则关键词分类
-   - 输出热点类别、分数、双语摘要
+   - LLM 语义分类（adoption 判定 + 置信度 + 中文 AI 深度观点）
+   - 无 LLM Key 时自动使用规则分析（基于事件内容生成差异化中文观点）
+   - 标题保持原始语言，AI观点统一中文输出
 
 3. **监控能力**
    - 可配置项目/代币关键词（watch target）
@@ -66,7 +66,7 @@ cp .env.example .env
 - `KOL_MIN_FOLLOWERS`：KOL 最低粉丝阈值，默认 200000
 - `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`：Telegram 消息推送和指令控制
 - `TELEGRAM_HOTSPOT_PUSH_LIMIT`：每轮推送热点条目上限（默认 5）
-- `LLM_API_KEY` / `LLM_MODEL`：中英双语语义分类模型
+- `LLM_API_KEY` / `LLM_MODEL`：语义分类与中文深度观点模型
 - `DUNE_API_KEY` + `DUNE_QUERY_IDS`：Dune 数据源
 - `GITHUB_RELEASE_REPOS`：GitHub Release 监控仓库列表
 
@@ -146,12 +146,12 @@ curl "http://127.0.0.1:8000/monitor-events?limit=50"
 - `/task_stop`：暂停定时任务
 - `/status`：查看任务状态
 
-### Telegram 推送模板（精简版）
+### Telegram 推送模板（按来源分组）
 
-每条热点仅包含你要求的 3 部分：
+推送会按数据源分组（例如权威媒体、BTC/ETH/SOL 链新闻、X 大V、GitHub 热门项目等），每条热点仅包含：
 
-- 中英文总结标题（`标题` + `Title`）
-- 每条新闻的 AI 深度观点总结（`AI观点(中文)` + `AI Insight(EN)`）
+- 标题（保持原始语言）
+- AI 深度观点（中文）
 - 出处链接（`Link`）
 
 可通过 `GET /telegram/last-digest` 查看最近一次生成的消息体。
@@ -177,9 +177,10 @@ TELEGRAM_HOTSPOT_PUSH_LIMIT=5
    - 发送 `/status` 查看任务状态
    - 发送 `/task_stop` / `/task_start` 测试定时任务暂停与恢复
 
-推送模板当前固定为精简结构：
-- 中英文总结标题
-- AI 深度观点（中英）
+推送模板当前固定为按来源分组的精简结构：
+- 分组标题（来源）
+- 原始语言标题
+- 中文 AI 深度观点
 - 出处链接
 
 可通过 `TELEGRAM_HOTSPOT_PUSH_LIMIT` 配置每次推送最多包含的热点条数。
@@ -209,7 +210,7 @@ src/hot_monitor/
   controller.py          # 任务启停与 Telegram 指令控制
   database.py            # SQLite schema 与 DAO
   integrations/
-    llm_classifier.py    # 中英双语 LLM 语义分类
+    llm_classifier.py    # LLM语义分类与中文AI深度观点
     telegram_bot.py      # Telegram 推送与命令轮询
   main.py                # FastAPI 入口
   scheduler.py           # 定时任务
@@ -218,7 +219,9 @@ src/hot_monitor/
     defillama.py         # DefiLlama 数据抓取
     dune.py              # Dune 查询结果抓取
     github_releases.py   # GitHub Release 抓取
+    github_trending.py   # GitHub 热门项目抓取
     news_rss.py          # RSS 新闻抓取
+    source_grouping.py   # 数据源分组映射
     x_client.py          # X API 客户端
 ```
 

@@ -85,4 +85,9 @@ class XClient:
         if not normalized or not self.enabled:
             return []
         query = f"from:{normalized} -is:retweet"
-        return self.search_recent_posts(query=query, max_results=max_results)
+        items = self.search_recent_posts(query=query, max_results=max_results)
+        for item in items:
+            metadata = item.setdefault("metadata", {})
+            metadata["channel"] = "x_kol"
+            metadata["kol_handle"] = normalized
+        return items

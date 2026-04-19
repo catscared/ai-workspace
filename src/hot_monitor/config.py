@@ -39,6 +39,21 @@ class Settings:
                     "https://www.coindesk.com/arc/outboundfeeds/rss/",
                     "https://cointelegraph.com/rss",
                     "https://decrypt.co/feed",
+                    "https://www.theblock.co/rss.xml",
+                ]
+            ),
+        ).split(",")
+        if feed.strip()
+    )
+    chain_news_feeds: tuple[str, ...] = tuple(
+        feed.strip()
+        for feed in os.getenv(
+            "CHAIN_NEWS_FEEDS",
+            ",".join(
+                [
+                    "https://cointelegraph.com/tags/bitcoin/rss",
+                    "https://cointelegraph.com/tags/ethereum/rss",
+                    "https://cointelegraph.com/tags/solana/rss",
                 ]
             ),
         ).split(",")
@@ -60,6 +75,21 @@ class Settings:
     defillama_enabled: bool = _to_bool(os.getenv("DEFILLAMA_ENABLED"), True)
     github_release_repos: tuple[str, ...] = _to_csv(os.getenv("GITHUB_RELEASE_REPOS"))
     github_token: str = os.getenv("GITHUB_TOKEN", "")
+    github_trending_enabled: bool = _to_bool(os.getenv("GITHUB_TRENDING_ENABLED"), True)
+    github_trending_query: str = os.getenv(
+        "GITHUB_TRENDING_QUERY",
+        "blockchain OR web3 OR crypto OR bitcoin OR ethereum OR solana OR rollup OR zk",
+    )
+    github_trending_max_results: int = int(os.getenv("GITHUB_TRENDING_MAX_RESULTS", "15"))
+    github_trending_min_stars: int = int(os.getenv("GITHUB_TRENDING_MIN_STARS", "150"))
+
+    x_default_kol_handles: tuple[str, ...] = _to_csv(
+        os.getenv(
+            "X_DEFAULT_KOL_HANDLES",
+            "cz_binance,VitalikButerin,aeyakovenko,SBF_FTX,justinsuntron",
+        )
+    )
+    x_kol_max_results: int = int(os.getenv("X_KOL_MAX_RESULTS", "20"))
 
 
 settings = Settings()

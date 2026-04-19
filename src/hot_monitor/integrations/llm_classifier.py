@@ -16,11 +16,7 @@ class SemanticClassification:
     category: str
     confidence: float
     summary_zh: str
-    summary_en: str
-    title_zh: str
-    title_en: str
     insight_zh: str
-    insight_en: str
 
 
 class LlmSemanticClassifier:
@@ -82,34 +78,52 @@ class LlmSemanticClassifier:
             content_excerpt = "No detailed content was available."
 
         zh = "规则分类：命中 AI+区块链关键词，判定为潜在落地热点。" if decision.is_hotspot else "规则分类：未达到 AI+区块链落地热点阈值。"
-        en = (
-            "Rule-based classification: matched AI + blockchain signals and marked as a potential adoption hotspot."
-            if decision.is_hotspot
-            else "Rule-based classification: does not meet the AI + blockchain adoption hotspot threshold."
-        )
-        title_zh = f"AI链上热点：{raw_title}"
-        title_en = f"AI-chain signal: {raw_title}"
-        insight_zh = (
-            f"事件要点：{content_excerpt} "
-            "AI深度观点：该信号体现了 AI 与链上基础设施或应用场景的耦合正在推进，"
-            "但价值捕获能否持续取决于真实使用频次、协议收入质量与治理执行效率。"
-        )
-        insight_en = (
-            f"Key update: {content_excerpt} "
-            "AI deep insight: this signal suggests ongoing coupling between AI workloads and on-chain infrastructure/apps, "
-            "while durable value capture still depends on real usage frequency, protocol revenue quality, and execution discipline."
+        insight_zh = self._heuristic_insight_zh(
+            title=raw_title,
+            content_excerpt=content_excerpt,
+            source_type=source_type,
+            engagement=engagement,
         )
         return SemanticClassification(
             is_ai_blockchain_adoption=decision.is_hotspot,
             category=decision.category,
             confidence=min(0.99, max(0.1, decision.score / 10)),
             summary_zh=zh,
-            summary_en=en,
-            title_zh=title_zh,
-            title_en=title_en,
             insight_zh=insight_zh,
-            insight_en=insight_en,
         )
+
+    def _heuristic_insight_zh(
+        self,
+        *,
+        title: str,
+        content_excerpt: str,
+        source_type: str,
+        engagement: int,
+    ) -> str:
+        text = f"{title} {content_excerpt}".lower()
+        angles: list[str] = []
+        if any(k in text for k in ("launch", "mainnet", "上线", "发布", "mint", "minted")):
+            angles.append("该事件更像是产品化落地阶段信号，关键在于后续 2-4 周是否出现真实留存和链上复用。")
+        if any(k in text for k in ("investigation", "probe", "lawsuit", "监管", "调查", "collapse")):
+            angles.append("当前叙事存在合规与市场结构风险，短期价格波动可能高于基本面改善速度。")
+        if any(k in text for k in ("exploit", "hack", "漏洞", "security", "regression")):
+            angles.append("基础设施安全性是 AI+链上应用的硬门槛，若修复周期过长会直接压制开发者与资金迁移意愿。")
+        if any(k in text for k in ("wrapped", "bridge", "cross-chain", "跨链")):
+            angles.append("跨链可组合性提升了流动性效率，但也会放大桥接依赖与系统性风险传导。")
+        if any(k in text for k in ("agent", "ai", "llm", "model", "inference")):
+            angles.append("AI 要素已进入链上业务闭环，下一阶段应重点验证成本结构是否能支持可持续推理与结算。")
+        if any(k in text for k in ("tvl", "volume", "users", "active", "fees", "minted")):
+            angles.append("建议同步观察 TVL、活跃地址、协议费收入三项指标，判断叙事是否转化为可量化需求。")
+
+        if source_type in {"github_release", "github_trending"}:
+            angles.append("从研发视角看，应继续跟踪贡献者增长、issue 关闭效率与版本发布节奏，确认是否进入工程化加速期。")
+        elif source_type in {"x", "x_kol"}:
+            angles.append("该信号在社交媒体传播效率较高，需防止“高热度低转化”，应配合链上数据验证真实采用。")
+        else:
+            angles.append("建议重点跟踪后续合作方、资金流向和用户行为数据，避免仅凭单条新闻做趋势外推。")
+
+        selected = angles[:3]
+        return f"事件要点：{content_excerpt} AI深度观点：{' '.join(selected)}"
 
     @staticmethod
     def _clean_text(value: str | None) -> str:
@@ -130,15 +144,13 @@ class LlmSemanticClassifier:
         engagement: int,
     ) -> SemanticClassification:
         prompt = (
-            "You are a bilingual crypto intelligence classifier.\n"
+            "You are a crypto intelligence classifier.\n"
             "Task: detect if content indicates real AI+blockchain application adoption/progress.\n"
             "Return strict JSON with keys: "
-            "is_ai_blockchain_adoption(bool), category(str), confidence(float 0-1), "
-            "title_zh(str), title_en(str), insight_zh(str), insight_en(str), summary_zh(str), summary_en(str).\n"
+            "is_ai_blockchain_adoption(bool), category(str), confidence(float 0-1), insight_zh(str), summary_zh(str).\n"
             "Category examples: ai-blockchain-adoption, ai-token-hype, infra-update, ecosystem-news, generic-blockchain.\n"
-            "title_zh/title_en should be concise summarized headlines.\n"
-            "insight_zh/insight_en should be deeper AI-oriented viewpoint summaries (2-4 sentences), "
-            "focusing on adoption feasibility, infra impact, token/value-capture implications, and execution risk.\n"
+            "insight_zh should be a deeper Chinese AI-oriented viewpoint summary (3-5 sentences), "
+            "focusing on adoption feasibility, infra impact, token/value-capture implications, execution risk, and next watch points.\n"
             f"source_type={source_type}; engagement={engagement}\n"
             f"title={title or ''}\n"
             f"content={content or ''}\n"
@@ -173,9 +185,5 @@ class LlmSemanticClassifier:
             category=str(parsed.get("category") or "generic-blockchain"),
             confidence=float(parsed.get("confidence") or 0.5),
             summary_zh=str(parsed.get("summary_zh") or "暂无中文摘要"),
-            summary_en=str(parsed.get("summary_en") or "No English summary"),
-            title_zh=str(parsed.get("title_zh") or parsed.get("summary_zh") or "未提供中文标题"),
-            title_en=str(parsed.get("title_en") or parsed.get("summary_en") or "No English title"),
             insight_zh=str(parsed.get("insight_zh") or parsed.get("summary_zh") or "暂无中文观点"),
-            insight_en=str(parsed.get("insight_en") or parsed.get("summary_en") or "No English insight"),
         )

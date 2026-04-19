@@ -43,6 +43,7 @@ def fetch_dune_items(api_key: str, query_ids: tuple[str, ...], max_rows: int = 1
                         "metadata": {
                             "query_id": query_id,
                             "row_index": idx,
+                            "channel": "dune",
                         },
                     }
                 )

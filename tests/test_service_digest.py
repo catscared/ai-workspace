@@ -19,15 +19,39 @@ def test_build_hotspot_digest_includes_title_insight_and_link() -> None:
                 "url": "https://example.com/signal",
                 "confidence": 0.91,
                 "score": 9.1,
-                "title_zh": "测试中文标题",
-                "title_en": "Test English Title",
                 "insight_zh": "这是中文深度观点",
-                "insight_en": "This is an English deep insight",
+                "channel": "news",
             }
         ],
     )
-    assert "标题: 测试中文标题" in message
-    assert "Title: Test English Title" in message
-    assert "AI观点(中文): 这是中文深度观点" in message
-    assert "AI Insight(EN): This is an English deep insight" in message
+    assert "标题: Test signal" in message
+    assert "AI观点: 这是中文深度观点" in message
     assert "Link: https://example.com/signal" in message
+
+
+def test_build_hotspot_digest_groups_by_channel() -> None:
+    db_path = Path(tempfile.gettempdir()) / "hot_monitor_test_digest_group.db"
+    settings = Settings(database_path=str(db_path), telegram_hotspot_push_limit=2)
+    service = HotMonitorService(db=Database(settings.database_path), settings=settings)
+    message = service._build_hotspot_digest(
+        hotspots=[
+            {
+                "title": "KOL Tweet",
+                "url": "https://x.com/abc/status/1",
+                "confidence": 0.8,
+                "score": 8.0,
+                "insight_zh": "KOL insight",
+                "channel": "x_kol",
+            },
+            {
+                "title": "News article",
+                "url": "https://news.example.com/1",
+                "confidence": 0.7,
+                "score": 7.0,
+                "insight_zh": "News insight",
+                "channel": "news",
+            },
+        ]
+    )
+    assert "【权威区块链媒体】" in message
+    assert "【X 大V/KOL 动态】" in message

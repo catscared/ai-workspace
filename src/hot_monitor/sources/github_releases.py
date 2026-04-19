@@ -43,6 +43,7 @@ def fetch_github_release_items(
                             "tag_name": release.get("tag_name"),
                             "draft": bool(release.get("draft")),
                             "prerelease": bool(release.get("prerelease")),
+                            "channel": "github_release",
                         },
                     }
                 )

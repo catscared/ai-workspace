@@ -49,6 +49,7 @@ def fetch_defillama_items(max_items: int = 20) -> list[dict[str, Any]]:
                     "chain": chain,
                     "tvl": tvl,
                     "change_1d": change_1d,
+                    "channel": "defillama",
                 },
             }
         )
