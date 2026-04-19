@@ -29,7 +29,7 @@ class Settings:
     x_max_results: int = int(os.getenv("X_MAX_RESULTS", "20"))
     kol_min_followers: int = int(os.getenv("KOL_MIN_FOLLOWERS", "200000"))
     collection_cron: str = os.getenv("COLLECTION_CRON", "0 8 * * *")
-    collection_interval_minutes: int = int(os.getenv("COLLECTION_INTERVAL_MINUTES", "0"))
+    collection_interval_minutes: int = int(os.getenv("COLLECTION_INTERVAL_MINUTES", "240"))
     news_rss_feeds: tuple[str, ...] = tuple(
         feed.strip()
         for feed in os.getenv(
@@ -71,9 +71,16 @@ class Settings:
     llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "20"))
 
     dune_api_key: str = os.getenv("DUNE_API_KEY", "")
-    dune_query_ids: tuple[str, ...] = _to_csv(os.getenv("DUNE_QUERY_IDS"))
+    dune_query_ids: tuple[str, ...] = _to_csv(
+        os.getenv("DUNE_QUERY_IDS", "1215383,1884565")
+    )
     defillama_enabled: bool = _to_bool(os.getenv("DEFILLAMA_ENABLED"), True)
-    github_release_repos: tuple[str, ...] = _to_csv(os.getenv("GITHUB_RELEASE_REPOS"))
+    github_release_repos: tuple[str, ...] = _to_csv(
+        os.getenv(
+            "GITHUB_RELEASE_REPOS",
+            "bitcoin/bitcoin,ethereum/go-ethereum,solana-labs/solana,OffchainLabs/nitro",
+        )
+    )
     github_token: str = os.getenv("GITHUB_TOKEN", "")
     github_trending_enabled: bool = _to_bool(os.getenv("GITHUB_TRENDING_ENABLED"), True)
     github_trending_query: str = os.getenv(

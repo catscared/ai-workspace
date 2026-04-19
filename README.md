@@ -2,8 +2,8 @@
 
 这是一个可运行的 MVP，用于实现你提到的需求：
 
-- 抓取 **AI 相关区块链热点应用落地信息**（新闻 + X + Dune + DefiLlama + GitHub Release）
-- 支持 **每日定时** 或 **按分钟间隔** 自动采集
+- 抓取 **AI 相关区块链热点应用落地信息**（权威媒体 + 大链新闻 + X 热门 + X 大V + GitHub 热门 + GitHub Release + Dune + DefiLlama）
+- 支持 **每4小时自动采集**（默认）或自定义 cron/interval
 - 支持添加 **项目/代币监控目标**
 - 支持添加并绑定 **X 上 KOL（followers > 20w）**，进行热点监控
 - 支持 **Telegram 推送 + Telegram 指令控制任务启停**
@@ -11,12 +11,15 @@
 
 ## 功能概览
 
-1. **数据源**
-   - 区块链新闻 RSS（默认 CoinDesk / Cointelegraph / Decrypt）
-   - X API（Recent Search + 指定 KOL 账号 recent posts）
-   - Dune Query 结果（可配置 query ids）
-   - DefiLlama 协议数据快照
-   - GitHub Release（可配置 repo 列表）
+1. **数据源（默认全部开启监控）**
+   - 权威区块链媒体（CoinDesk / Cointelegraph / Decrypt / The Block）
+   - 主流大链新闻（BTC / ETH / SOL 专题 RSS）
+   - X 热门话题（Recent Search）
+   - X 大V / KOL 动态（默认账号 + 自定义账号）
+   - GitHub 热门飙升项目（基于星标与更新活跃度）
+   - GitHub 项目版本发布（Release）
+   - Dune 链上数据信号
+   - DefiLlama 协议信号
 
 2. **热点识别**
    - LLM 语义分类（adoption 判定 + 置信度 + 中文 AI 深度观点）
@@ -29,8 +32,8 @@
    - target 与 KOL 可绑定，实现重点账号关联监控
 
 4. **调度模式**
-   - Cron（例如每天 08:00 UTC）
-   - 或 interval（例如每 30 分钟）
+   - 默认 interval：每 4 小时执行一次
+   - 或 cron（仅在 interval 设为 0 时生效）
 
 5. **控制面**
    - HTTP 接口控制任务：`/tasks/start`、`/tasks/stop`、`/tasks/status`
@@ -61,8 +64,8 @@ cp .env.example .env
 关键配置：
 
 - `X_BEARER_TOKEN`：X API Bearer Token（不填也可运行，仅跳过 X 数据源）
-- `COLLECTION_CRON`：cron 表达式（UTC）
-- `COLLECTION_INTERVAL_MINUTES`：若 > 0，则优先使用 interval 调度
+- `COLLECTION_CRON`：cron 表达式（UTC；当 `COLLECTION_INTERVAL_MINUTES=0` 时生效）
+- `COLLECTION_INTERVAL_MINUTES`：默认 `240`（每4小时）
 - `KOL_MIN_FOLLOWERS`：KOL 最低粉丝阈值，默认 200000
 - `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`：Telegram 消息推送和指令控制
 - `TELEGRAM_HOTSPOT_PUSH_LIMIT`：每轮推送热点条目上限（默认 5）
