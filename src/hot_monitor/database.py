@@ -14,10 +14,16 @@ def _utc_now() -> str:
 class Database:
     def __init__(self, path: str) -> None:
         self.path = path
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        self._ensure_parent_dir()
         self._init_schema()
 
+    def _ensure_parent_dir(self) -> None:
+        parent = os.path.dirname(self.path)
+        if parent:
+            os.makedirs(parent, exist_ok=True)
+
     def _get_conn(self) -> sqlite3.Connection:
+        self._ensure_parent_dir()
         conn = sqlite3.connect(self.path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")

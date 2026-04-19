@@ -62,7 +62,10 @@ class TaskController:
         handled = 0
         for update in updates:
             self._telegram_offset = update.update_id + 1
-            response = self._handle_command(update.text)
+            try:
+                response = self._handle_command(update.text)
+            except Exception as exc:
+                response = f"Command failed: {exc}"
             if response:
                 try:
                     self.telegram.send_message(response, chat_id=update.chat_id)
@@ -72,7 +75,7 @@ class TaskController:
         return handled
 
     def _handle_command(self, text: str) -> str:
-        cmd = text.strip().lower()
+        cmd = self._extract_command(text)
         if cmd in {"/task_stop", "/pause"}:
             self.pause_collection()
             return "Collection task paused."
@@ -94,3 +97,10 @@ class TaskController:
                 f"collection_job_paused={state.collection_job_paused}"
             )
         return "Unsupported command. Use /collect /task_start /task_stop /status"
+
+    @staticmethod
+    def _extract_command(text: str) -> str:
+        stripped = text.strip().lower()
+        if not stripped:
+            return ""
+        return stripped.split()[0]
