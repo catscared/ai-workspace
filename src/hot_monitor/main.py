@@ -159,6 +159,11 @@ def list_monitor_events(
     return db.list_monitor_events(limit=limit, target_id=target_id)
 
 
+@app.get("/telegram/last-digest")
+def get_last_telegram_digest() -> dict[str, str]:
+    return {"message": service.get_last_telegram_digest()}
+
+
 @app.get("/config")
 def get_runtime_config() -> dict[str, int | str | bool]:
     return {
@@ -168,6 +173,7 @@ def get_runtime_config() -> dict[str, int | str | bool]:
         "x_max_results": settings.x_max_results,
         "telegram_enabled": service.telegram.enabled,
         "telegram_notify_on_collect": settings.telegram_notify_on_collect,
+        "telegram_hotspot_push_limit": settings.telegram_hotspot_push_limit,
         "llm_enabled": service.semantic_classifier.enabled,
         "llm_model": settings.llm_model,
         "defillama_enabled": settings.defillama_enabled,

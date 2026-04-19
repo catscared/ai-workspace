@@ -65,6 +65,7 @@ cp .env.example .env
 - `COLLECTION_INTERVAL_MINUTES`：若 > 0，则优先使用 interval 调度
 - `KOL_MIN_FOLLOWERS`：KOL 最低粉丝阈值，默认 200000
 - `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`：Telegram 消息推送和指令控制
+- `TELEGRAM_HOTSPOT_PUSH_LIMIT`：每轮推送热点条目上限（默认 5）
 - `LLM_API_KEY` / `LLM_MODEL`：中英双语语义分类模型
 - `DUNE_API_KEY` + `DUNE_QUERY_IDS`：Dune 数据源
 - `GITHUB_RELEASE_REPOS`：GitHub Release 监控仓库列表
@@ -144,6 +145,45 @@ curl "http://127.0.0.1:8000/monitor-events?limit=50"
 - `/task_start`：恢复定时任务
 - `/task_stop`：暂停定时任务
 - `/status`：查看任务状态
+
+### Telegram 推送模板（已增强）
+
+每轮采集后会推送双语热点简报，包含：
+
+- 中英双语标题与摘要（`ZH` / `EN`）
+- 证据链接（`Evidence`）
+- 信号分层（`HIGH/高`、`MEDIUM/中`、`LOW/低`）
+- 本轮统计与分层统计
+
+可通过 `GET /telegram/last-digest` 查看最近一次生成的消息体。
+
+## 如何开始用 Telegram 测试
+
+1. 在 Telegram 里找到 `@BotFather`，执行 `/newbot` 创建机器人，拿到 `TELEGRAM_BOT_TOKEN`
+2. 给你的机器人发一条任意消息（例如 `/start`）
+3. 在浏览器访问：
+   `https://api.telegram.org/bot<你的TOKEN>/getUpdates`
+   从返回 JSON 里找到 `message.chat.id`，填到 `TELEGRAM_CHAT_ID`
+4. 在 `.env` 中至少配置：
+
+```env
+TELEGRAM_BOT_TOKEN=123456:ABC...
+TELEGRAM_CHAT_ID=123456789
+TELEGRAM_NOTIFY_ON_COLLECT=true
+TELEGRAM_HOTSPOT_PUSH_LIMIT=5
+```
+
+5. 启动服务后测试：
+   - 发送 `/collect` 给 bot，应该收到热点简报
+   - 发送 `/status` 查看任务状态
+   - 发送 `/task_stop` / `/task_start` 测试定时任务暂停与恢复
+
+推送模板已升级为：
+- 中英双语摘要（`ZH` + `EN`）
+- 证据链接（`Evidence`）
+- 信号分层（`HIGH/高`、`MEDIUM/中`、`LOW/低`）
+
+可通过 `TELEGRAM_HOTSPOT_PUSH_LIMIT` 配置每次推送最多包含的热点条数。
 
 ## 项目结构
 

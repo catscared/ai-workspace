@@ -31,6 +31,7 @@ class HotMonitorService:
             model=settings.llm_model,
             timeout_seconds=settings.llm_timeout_seconds,
         )
+        self._last_telegram_digest = ""
 
     def _default_x_query(self) -> str:
         return (
@@ -43,6 +44,7 @@ class HotMonitorService:
         hotspots_detected = 0
         monitor_events_detected = 0
         self._event_keys_seen_in_run.clear()
+        run_hotspots: list[dict[str, Any]] = []
 
         batch_items: list[dict[str, Any]] = []
         batch_items.extend(fetch_news_items(self.settings.news_rss_feeds))
@@ -111,14 +113,27 @@ class HotMonitorService:
                 engagement=item.get("engagement", 0),
             )
             if semantic.is_ai_blockchain_adoption:
+                score = round(semantic.confidence * 10, 3)
                 self.db.upsert_hotspot(
                     raw_item_id=raw_item_id,
-                    score=round(semantic.confidence * 10, 3),
+                    score=score,
                     category=semantic.category,
                     summary=f"{semantic.summary_zh} | {semantic.summary_en}",
                     summary_zh=semantic.summary_zh,
                     summary_en=semantic.summary_en,
                     confidence=semantic.confidence,
+                )
+                run_hotspots.append(
+                    {
+                        "title": item.get("title") or (item.get("content") or "")[:80],
+                        "source_type": item.get("source_type") or "unknown",
+                        "url": item.get("url"),
+                        "category": semantic.category,
+                        "confidence": float(semantic.confidence),
+                        "score": score,
+                        "summary_zh": semantic.summary_zh,
+                        "summary_en": semantic.summary_en,
+                    }
                 )
                 hotspots_detected += 1
 
@@ -172,18 +187,83 @@ class HotMonitorService:
             "hotspots_detected": hotspots_detected,
             "monitor_events_detected": monitor_events_detected,
         }
+        self._last_telegram_digest = self._build_hotspot_digest(result=result, hotspots=run_hotspots)
         if self.settings.telegram_notify_on_collect:
-            self._notify_collect_result(result)
+            self._notify_collect_result(self._last_telegram_digest)
         return result
 
-    def _notify_collect_result(self, result: dict[str, int]) -> None:
-        text = (
-            "Hot Monitor collected.\n"
-            f"raw_items={result['inserted_raw_items']}, "
-            f"hotspots={result['hotspots_detected']}, "
-            f"monitor_events={result['monitor_events_detected']}"
-        )
+    def get_last_telegram_digest(self) -> str:
+        return self._last_telegram_digest
+
+    @staticmethod
+    def _signal_tier(confidence: float) -> tuple[str, str]:
+        if confidence >= 0.8:
+            return ("HIGH", "高")
+        if confidence >= 0.55:
+            return ("MEDIUM", "中")
+        return ("LOW", "低")
+
+    def _build_hotspot_digest(
+        self,
+        *,
+        result: dict[str, int],
+        hotspots: list[dict[str, Any]],
+    ) -> str:
+        ranked = sorted(
+            hotspots,
+            key=lambda item: (float(item.get("confidence") or 0), float(item.get("score") or 0)),
+            reverse=True,
+        )[: max(1, self.settings.telegram_hotspot_push_limit)]
+
+        tier_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
+        for hotspot in ranked:
+            tier_en, _ = self._signal_tier(float(hotspot.get("confidence") or 0))
+            tier_counts[tier_en] += 1
+
+        lines = [
+            "AI + Blockchain Hotspot Digest / AI+区块链热点简报",
+            (
+                f"Run stats / 运行统计: raw_items={result['inserted_raw_items']}, "
+                f"hotspots={result['hotspots_detected']}, monitor_events={result['monitor_events_detected']}"
+            ),
+            (
+                f"Signal tiers / 信号分层: "
+                f"HIGH/高={tier_counts['HIGH']} | "
+                f"MEDIUM/中={tier_counts['MEDIUM']} | "
+                f"LOW/低={tier_counts['LOW']}"
+            ),
+        ]
+        if not ranked:
+            lines.append("No hotspot detected in this run / 本轮未识别到热点信号。")
+            return "\n".join(lines)
+
+        for idx, hotspot in enumerate(ranked, start=1):
+            confidence = float(hotspot.get("confidence") or 0)
+            tier_en, tier_zh = self._signal_tier(confidence)
+            evidence_link = str(hotspot.get("url") or "N/A")
+            title = str(hotspot.get("title") or "Untitled signal")
+            lines.extend(
+                [
+                    "",
+                    f"{idx}. [{tier_en}/{tier_zh}] {title}",
+                    (
+                        "   "
+                        f"Source={hotspot.get('source_type')} | "
+                        f"Category={hotspot.get('category')} | "
+                        f"Confidence={confidence:.2f}"
+                    ),
+                    f"   ZH: {hotspot.get('summary_zh') or '暂无中文摘要'}",
+                    f"   EN: {hotspot.get('summary_en') or 'No English summary'}",
+                    f"   Evidence: {evidence_link}",
+                ]
+            )
+        message = "\n".join(lines).strip()
+        if len(message) > 3800:
+            return message[:3790] + "\n..."
+        return message
+
+    def _notify_collect_result(self, message: str) -> None:
         try:
-            self.telegram.send_message(text)
+            self.telegram.send_message(message)
         except Exception:
             pass

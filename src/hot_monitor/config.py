@@ -48,6 +48,7 @@ class Settings:
     telegram_chat_id: str = os.getenv("TELEGRAM_CHAT_ID", "")
     telegram_poll_interval_seconds: int = int(os.getenv("TELEGRAM_POLL_INTERVAL_SECONDS", "20"))
     telegram_notify_on_collect: bool = _to_bool(os.getenv("TELEGRAM_NOTIFY_ON_COLLECT"), True)
+    telegram_hotspot_push_limit: int = int(os.getenv("TELEGRAM_HOTSPOT_PUSH_LIMIT", "5"))
 
     llm_api_base_url: str = os.getenv("LLM_API_BASE_URL", "https://api.openai.com/v1")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
