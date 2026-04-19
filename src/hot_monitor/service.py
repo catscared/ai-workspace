@@ -168,6 +168,7 @@ class HotMonitorService:
                         "confidence": float(semantic.confidence),
                         "score": score,
                         "insight_zh": semantic.insight_zh,
+                        "source_type": item.get("source_type") or "unknown",
                         "channel": resolve_channel(item),
                     }
                 )
@@ -272,8 +273,8 @@ class HotMonitorService:
                 lines.extend(
                     [
                         f"{idx}) 标题: {title}",
-                        f"   AI观点: {hotspot.get('insight_zh') or hotspot.get('summary_zh') or '暂无AI观点'}",
-                        f"   Link: {evidence_link}",
+                        f"   AI观点:\n{hotspot.get('insight_zh') or hotspot.get('summary_zh') or '暂无AI观点'}",
+                        f"   Link:\n{evidence_link}",
                     ]
                 )
         message = "\n".join(lines).strip()

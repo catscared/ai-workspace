@@ -25,8 +25,8 @@ def test_build_hotspot_digest_includes_title_insight_and_link() -> None:
         ],
     )
     assert "标题: Test signal" in message
-    assert "AI观点: 这是中文深度观点" in message
-    assert "Link: https://example.com/signal" in message
+    assert "AI观点:\n这是中文深度观点" in message
+    assert "Link:\nhttps://example.com/signal" in message
 
 
 def test_build_hotspot_digest_groups_by_channel() -> None:
