@@ -27,12 +27,17 @@ class Database:
         conn = sqlite3.connect(self.path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
+        if not self._schema_exists(conn):
+            self._apply_schema(conn)
         return conn
 
     def _init_schema(self) -> None:
         with self._get_conn() as conn:
-            conn.executescript(
-                """
+            self._apply_schema(conn)
+
+    def _apply_schema(self, conn: sqlite3.Connection) -> None:
+        conn.executescript(
+            """
                 CREATE TABLE IF NOT EXISTS watch_targets (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
@@ -101,9 +106,16 @@ class Database:
                     FOREIGN KEY(kol_id) REFERENCES kol_accounts(id) ON DELETE CASCADE,
                     FOREIGN KEY(raw_item_id) REFERENCES raw_items(id) ON DELETE CASCADE
                 );
-                """
-            )
-            self._ensure_hotspot_columns(conn)
+            """
+        )
+        self._ensure_hotspot_columns(conn)
+
+    @staticmethod
+    def _schema_exists(conn: sqlite3.Connection) -> bool:
+        row = conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'watch_targets'"
+        ).fetchone()
+        return row is not None
 
     @staticmethod
     def _ensure_hotspot_columns(conn: sqlite3.Connection) -> None:
