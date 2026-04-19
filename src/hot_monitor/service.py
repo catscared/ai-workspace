@@ -126,13 +126,13 @@ class HotMonitorService:
                 run_hotspots.append(
                     {
                         "title": item.get("title") or (item.get("content") or "")[:80],
-                        "source_type": item.get("source_type") or "unknown",
                         "url": item.get("url"),
-                        "category": semantic.category,
                         "confidence": float(semantic.confidence),
                         "score": score,
-                        "summary_zh": semantic.summary_zh,
-                        "summary_en": semantic.summary_en,
+                        "title_zh": semantic.title_zh,
+                        "title_en": semantic.title_en,
+                        "insight_zh": semantic.insight_zh,
+                        "insight_en": semantic.insight_en,
                     }
                 )
                 hotspots_detected += 1
@@ -187,7 +187,7 @@ class HotMonitorService:
             "hotspots_detected": hotspots_detected,
             "monitor_events_detected": monitor_events_detected,
         }
-        self._last_telegram_digest = self._build_hotspot_digest(result=result, hotspots=run_hotspots)
+        self._last_telegram_digest = self._build_hotspot_digest(hotspots=run_hotspots)
         if self.settings.telegram_notify_on_collect:
             self._notify_collect_result(self._last_telegram_digest)
         return result
@@ -195,66 +195,32 @@ class HotMonitorService:
     def get_last_telegram_digest(self) -> str:
         return self._last_telegram_digest
 
-    @staticmethod
-    def _signal_tier(confidence: float) -> tuple[str, str]:
-        if confidence >= 0.8:
-            return ("HIGH", "高")
-        if confidence >= 0.55:
-            return ("MEDIUM", "中")
-        return ("LOW", "低")
-
-    def _build_hotspot_digest(
-        self,
-        *,
-        result: dict[str, int],
-        hotspots: list[dict[str, Any]],
-    ) -> str:
+    def _build_hotspot_digest(self, *, hotspots: list[dict[str, Any]]) -> str:
         ranked = sorted(
             hotspots,
             key=lambda item: (float(item.get("confidence") or 0), float(item.get("score") or 0)),
             reverse=True,
         )[: max(1, self.settings.telegram_hotspot_push_limit)]
 
-        tier_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
-        for hotspot in ranked:
-            tier_en, _ = self._signal_tier(float(hotspot.get("confidence") or 0))
-            tier_counts[tier_en] += 1
-
-        lines = [
-            "AI + Blockchain Hotspot Digest / AI+区块链热点简报",
-            (
-                f"Run stats / 运行统计: raw_items={result['inserted_raw_items']}, "
-                f"hotspots={result['hotspots_detected']}, monitor_events={result['monitor_events_detected']}"
-            ),
-            (
-                f"Signal tiers / 信号分层: "
-                f"HIGH/高={tier_counts['HIGH']} | "
-                f"MEDIUM/中={tier_counts['MEDIUM']} | "
-                f"LOW/低={tier_counts['LOW']}"
-            ),
-        ]
+        lines = ["AI Hotspot Insights / AI热点深度观点"]
         if not ranked:
-            lines.append("No hotspot detected in this run / 本轮未识别到热点信号。")
+            lines.append("No hotspot detected / 本轮无热点")
             return "\n".join(lines)
 
         for idx, hotspot in enumerate(ranked, start=1):
-            confidence = float(hotspot.get("confidence") or 0)
-            tier_en, tier_zh = self._signal_tier(confidence)
-            evidence_link = str(hotspot.get("url") or "N/A")
-            title = str(hotspot.get("title") or "Untitled signal")
+            evidence_link = str(hotspot.get("url") or "").strip() or "N/A"
+            title_zh = str(hotspot.get("title_zh") or hotspot.get("title") or "未命名热点")
+            title_en = str(hotspot.get("title_en") or hotspot.get("title") or "Untitled hotspot")
+            if len(evidence_link) > 400:
+                evidence_link = evidence_link[:400].rstrip() + "..."
             lines.extend(
                 [
                     "",
-                    f"{idx}. [{tier_en}/{tier_zh}] {title}",
-                    (
-                        "   "
-                        f"Source={hotspot.get('source_type')} | "
-                        f"Category={hotspot.get('category')} | "
-                        f"Confidence={confidence:.2f}"
-                    ),
-                    f"   ZH: {hotspot.get('summary_zh') or '暂无中文摘要'}",
-                    f"   EN: {hotspot.get('summary_en') or 'No English summary'}",
-                    f"   Evidence: {evidence_link}",
+                    f"{idx}) 标题: {title_zh}",
+                    f"   Title: {title_en}",
+                    f"   AI观点(中文): {hotspot.get('insight_zh') or hotspot.get('summary_zh') or '暂无中文观点'}",
+                    f"   AI Insight(EN): {hotspot.get('insight_en') or hotspot.get('summary_en') or 'No English insight'}",
+                    f"   Link: {evidence_link}",
                 ]
             )
         message = "\n".join(lines).strip()

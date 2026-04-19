@@ -146,14 +146,13 @@ curl "http://127.0.0.1:8000/monitor-events?limit=50"
 - `/task_stop`：暂停定时任务
 - `/status`：查看任务状态
 
-### Telegram 推送模板（已增强）
+### Telegram 推送模板（精简版）
 
-每轮采集后会推送双语热点简报，包含：
+每条热点仅包含你要求的 3 部分：
 
-- 中英双语标题与摘要（`ZH` / `EN`）
-- 证据链接（`Evidence`）
-- 信号分层（`HIGH/高`、`MEDIUM/中`、`LOW/低`）
-- 本轮统计与分层统计
+- 中英文总结标题（`标题` + `Title`）
+- 每条新闻的 AI 深度观点总结（`AI观点(中文)` + `AI Insight(EN)`）
+- 出处链接（`Link`）
 
 可通过 `GET /telegram/last-digest` 查看最近一次生成的消息体。
 
@@ -178,12 +177,28 @@ TELEGRAM_HOTSPOT_PUSH_LIMIT=5
    - 发送 `/status` 查看任务状态
    - 发送 `/task_stop` / `/task_start` 测试定时任务暂停与恢复
 
-推送模板已升级为：
-- 中英双语摘要（`ZH` + `EN`）
-- 证据链接（`Evidence`）
-- 信号分层（`HIGH/高`、`MEDIUM/中`、`LOW/低`）
+推送模板当前固定为精简结构：
+- 中英文总结标题
+- AI 深度观点（中英）
+- 出处链接
 
 可通过 `TELEGRAM_HOTSPOT_PUSH_LIMIT` 配置每次推送最多包含的热点条数。
+
+## 开机自动启动（仅此项）
+
+已提供一键脚本安装 user 级 systemd 服务：
+
+```bash
+bash scripts/install_autostart.sh /workspace
+```
+
+常用命令：
+
+```bash
+systemctl --user status hot-monitor.service
+systemctl --user restart hot-monitor.service
+journalctl --user -u hot-monitor.service -f
+```
 
 ## 项目结构
 
