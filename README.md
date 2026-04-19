@@ -16,6 +16,7 @@
    - 主流大链新闻（BTC / ETH / SOL 专题 RSS）
    - X 热门话题（Recent Search）
    - X 大V / KOL 动态（默认账号 + 自定义账号）
+   - X 大V / KOL 热门帖子（按互动热度筛选 Top N）
    - GitHub 热门飙升项目（基于星标与更新活跃度）
    - GitHub 项目版本发布（Release）
    - Dune 链上数据信号
@@ -72,6 +73,8 @@ cp .env.example .env
 - `LLM_API_KEY` / `LLM_MODEL`：语义分类与中文深度观点模型
 - `DUNE_API_KEY` + `DUNE_QUERY_IDS`：Dune 数据源
 - `GITHUB_RELEASE_REPOS`：GitHub Release 监控仓库列表
+- `X_DEFAULT_KOL_HANDLES`：默认监控的大V账号列表（已内置一批常用 Web3 KOL）
+- `X_KOL_HOT_TOP_N`：每轮从 KOL 动态中提取的热门帖子数量（默认 5）
 
 ### 3) 启动服务
 

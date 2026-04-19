@@ -25,6 +25,7 @@ def channel_title(channel: str) -> str:
         "chain_news": "主流大链新闻(BTC/ETH/SOL)",
         "x": "X 热门话题",
         "x_kol": "X 大V/KOL 动态",
+        "x_kol_hot": "X 大V/KOL 热门帖子",
         "github_trending": "GitHub 热门飙升项目",
         "github_release": "GitHub 项目版本发布",
         "dune": "Dune 链上数据信号",

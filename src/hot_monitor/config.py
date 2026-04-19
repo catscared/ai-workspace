@@ -93,10 +93,14 @@ class Settings:
     x_default_kol_handles: tuple[str, ...] = _to_csv(
         os.getenv(
             "X_DEFAULT_KOL_HANDLES",
-            "cz_binance,VitalikButerin,aeyakovenko,SBF_FTX,justinsuntron",
+            "cz_binance,VitalikButerin,aeyakovenko,justinsuntron,sandeepnailwal,"
+            "StaniKulechov,haydenzadams,Arthur_0x,CryptoHayes,CryptoMichNL,"
+            "AltcoinGordon,TheCryptoDog,crypto_banter,CryptoRank_io,DefiIgnas,"
+            "0xPolygon,binance,coinbase,solana,ethereum",
         )
     )
     x_kol_max_results: int = int(os.getenv("X_KOL_MAX_RESULTS", "20"))
+    x_kol_hot_top_n: int = int(os.getenv("X_KOL_HOT_TOP_N", "5"))
 
 
 settings = Settings()

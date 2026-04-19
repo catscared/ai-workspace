@@ -13,3 +13,4 @@ def test_resolve_channel_falls_back_to_source_type() -> None:
 
 def test_channel_title_mapping() -> None:
     assert channel_title("x_kol") == "X 大V/KOL 动态"
+    assert channel_title("x_kol_hot") == "X 大V/KOL 热门帖子"

@@ -121,8 +121,12 @@ class LlmSemanticClassifier:
             return "该消息反映协议运营指标变化，关键在于热度是否转化为可持续链上行为。"
         if source_type in {"github_release", "github_trending"}:
             return "该更新主要是研发与工程进展信号，短期影响开发者生态与协议演进节奏。"
-        if source_type in {"x", "x_kol"}:
+        if source_type in {"x", "x_kol", "x_kol_hot"}:
             return "该消息来自社交传播通道，需结合链上数据验证是否形成真实采用。"
+        if source_type == "defillama":
+            return "该消息反映协议运营指标变化，关键在于热度是否转化为可持续链上行为。"
+        if source_type == "dune":
+            return "该信号来自链上数据统计结果，重点是确认趋势是否具有连续性与可验证性。"
         if content_excerpt:
             return f"该消息核心信息：{content_excerpt}"
         return "该消息为生态动态更新，需结合后续链上数据与用户行为判断真实落地程度。"
@@ -154,6 +158,10 @@ class LlmSemanticClassifier:
             angles.append("研发信号：继续跟踪贡献者增长、issue 关闭效率与版本发布节奏，判断工程化是否提速。")
         elif source_type in {"x", "x_kol"}:
             angles.append("传播信号：社交声量可能领先基本面，需防止“高热度低转化”。")
+        elif source_type == "defillama":
+            angles.append("指标解读：优先关注 TVL 与活跃用户的同向变化，避免仅由资金迁移造成的短期虚增。")
+        elif source_type == "dune":
+            angles.append("数据验证：建议持续观察 7-30 天窗口，确认该信号不是短周期统计噪声。")
         else:
             angles.append("执行建议：跟踪后续合作方、资金流向与用户行为，避免对单条新闻做趋势外推。")
 

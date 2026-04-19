@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from copy import deepcopy
 from typing import Any
 
 from .analyzer import relevance_score_for_target
@@ -47,6 +48,26 @@ class HotMonitorService:
             "(ai OR agent OR llm OR zkml OR depin OR compute) "
             "(blockchain OR web3 OR crypto OR token OR defi) lang:en -is:retweet"
         )
+
+    def _extract_hot_kol_posts(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        scored: list[tuple[int, dict[str, Any]]] = []
+        for item in items:
+            metadata = item.get("metadata") or {}
+            if str(metadata.get("channel") or "") != "x_kol":
+                continue
+            engagement = int(item.get("engagement") or 0)
+            followers = int(item.get("author_followers") or 0)
+            hot_score = engagement + followers // 5000
+            scored.append((hot_score, item))
+        scored.sort(key=lambda pair: pair[0], reverse=True)
+        top_n = max(1, self.settings.x_kol_hot_top_n)
+        hot_items: list[dict[str, Any]] = []
+        for _, item in scored[:top_n]:
+            clone = deepcopy(item)
+            meta = clone.setdefault("metadata", {})
+            meta["channel"] = "x_kol_hot"
+            hot_items.append(clone)
+        return hot_items
 
     def collect_and_analyze(self) -> dict[str, int]:
         inserted_raw_items = 0
@@ -145,6 +166,9 @@ class HotMonitorService:
                 )
             except Exception:
                 continue
+
+        # Build a separate "hot posts" stream after all KOL posts are loaded.
+        batch_items.extend(self._extract_hot_kol_posts(batch_items))
 
         for item in batch_items:
             raw_item_id, was_inserted = self.db.save_raw_item(**item)
@@ -260,6 +284,7 @@ class HotMonitorService:
             "news",
             "chain_news",
             "x_kol",
+            "x_kol_hot",
             "x",
             "github_trending",
             "github_release",
