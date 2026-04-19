@@ -91,6 +91,7 @@ class TaskController:
 
     def _handle_command(self, text: str) -> str:
         cmd = self._extract_command(text)
+        args = self._extract_args(text)
         if cmd in {"/task_stop", "/pause"}:
             self.pause_collection()
             return "Collection task paused."
@@ -105,13 +106,29 @@ class TaskController:
                 f"hotspots={result['hotspots_detected']}, "
                 f"monitor_events={result['monitor_events_detected']}"
             )
+        if cmd == "/kol_add":
+            if not args:
+                return "Usage: /kol_add <x_handle>"
+            added = self.service.add_kol_whitelist_handle(args)
+            return f"KOL whitelist added: @{added['handle']}"
+        if cmd == "/kol_del":
+            if not args:
+                return "Usage: /kol_del <x_handle>"
+            removed = self.service.remove_kol_whitelist_handle(args)
+            return f"KOL whitelist removed={removed}: @{args.strip().lstrip('@').lower()}"
+        if cmd == "/kol_list":
+            rows = self.service.list_kol_whitelist_handles()
+            if not rows:
+                return "KOL whitelist is empty."
+            handles = ", ".join(f"@{row['handle']}" for row in rows[:40])
+            return f"KOL whitelist ({len(rows)}): {handles}"
         if cmd in {"/status", "/task_status"}:
             state = self.get_state()
             return (
                 f"scheduler_running={state.scheduler_running}, "
                 f"collection_job_paused={state.collection_job_paused}"
             )
-        return "Unsupported command. Use /collect /task_start /task_stop /status"
+        return "Unsupported command. Use /collect /task_start /task_stop /status /kol_add /kol_del /kol_list"
 
     @staticmethod
     def _extract_command(text: str) -> str:
@@ -119,6 +136,16 @@ class TaskController:
         if not stripped:
             return ""
         return stripped.split()[0]
+
+    @staticmethod
+    def _extract_args(text: str) -> str:
+        stripped = text.strip()
+        if not stripped:
+            return ""
+        parts = stripped.split(maxsplit=1)
+        if len(parts) < 2:
+            return ""
+        return parts[1].strip()
 
     @staticmethod
     def _build_receipt_id() -> str:

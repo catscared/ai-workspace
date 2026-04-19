@@ -10,6 +10,8 @@ from .database import Database
 from .schemas import (
     BindKolRequest,
     CollectResult,
+    KolWhitelistRequest,
+    KolWhitelistResponse,
     KolCreate,
     KolResponse,
     TaskControlResponse,
@@ -112,6 +114,25 @@ def list_target_kols(target_id: int) -> list[dict]:
 @app.post("/collect", response_model=CollectResult)
 def collect_now() -> dict[str, int]:
     return service.collect_and_analyze()
+
+
+@app.get("/kols/whitelist", response_model=list[KolWhitelistResponse])
+def list_kol_whitelist() -> list[dict]:
+    return service.list_kol_whitelist_handles()
+
+
+@app.post("/kols/whitelist", response_model=KolWhitelistResponse)
+def add_kol_whitelist(payload: KolWhitelistRequest) -> dict:
+    try:
+        return service.add_kol_whitelist_handle(payload.handle)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.delete("/kols/whitelist/{handle}")
+def remove_kol_whitelist(handle: str) -> dict[str, bool]:
+    removed = service.remove_kol_whitelist_handle(handle)
+    return {"removed": removed}
 
 
 @app.post("/tasks/stop", response_model=TaskControlResponse)

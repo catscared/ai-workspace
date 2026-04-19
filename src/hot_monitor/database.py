@@ -64,6 +64,12 @@ class Database:
                     FOREIGN KEY(kol_id) REFERENCES kol_accounts(id) ON DELETE CASCADE
                 );
 
+                CREATE TABLE IF NOT EXISTS x_kol_whitelist (
+                    handle TEXT PRIMARY KEY,
+                    source TEXT NOT NULL DEFAULT 'manual',
+                    created_at TEXT NOT NULL
+                );
+
                 CREATE TABLE IF NOT EXISTS raw_items (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     source_type TEXT NOT NULL,
@@ -252,6 +258,46 @@ class Database:
                 ORDER BY k.followers DESC
                 """,
                 (target_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def add_x_kol_whitelist_handle(self, handle: str, source: str = "manual") -> dict[str, Any]:
+        normalized = handle.strip().lstrip("@").lower()
+        if not normalized:
+            raise ValueError("KOL handle is required")
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO x_kol_whitelist (handle, source, created_at)
+                VALUES (?, ?, ?)
+                ON CONFLICT(handle) DO UPDATE SET source = excluded.source
+                """,
+                (normalized, source, _utc_now()),
+            )
+            row = conn.execute(
+                "SELECT handle, source, created_at FROM x_kol_whitelist WHERE handle = ?",
+                (normalized,),
+            ).fetchone()
+        if row is None:
+            raise ValueError("Unable to persist KOL whitelist handle")
+        return dict(row)
+
+    def remove_x_kol_whitelist_handle(self, handle: str) -> bool:
+        normalized = handle.strip().lstrip("@").lower()
+        if not normalized:
+            return False
+        with self._get_conn() as conn:
+            cur = conn.execute("DELETE FROM x_kol_whitelist WHERE handle = ?", (normalized,))
+        return cur.rowcount > 0
+
+    def list_x_kol_whitelist_handles(self) -> list[dict[str, Any]]:
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT handle, source, created_at
+                FROM x_kol_whitelist
+                ORDER BY created_at DESC
+                """
             ).fetchall()
         return [dict(row) for row in rows]
 

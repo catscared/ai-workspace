@@ -49,3 +49,13 @@ class TaskControlResponse(BaseModel):
     status: str
     scheduler_running: bool
     collection_job_paused: bool
+
+
+class KolWhitelistRequest(BaseModel):
+    handle: str = Field(min_length=1, max_length=80)
+
+
+class KolWhitelistResponse(BaseModel):
+    handle: str
+    source: str
+    created_at: datetime | str

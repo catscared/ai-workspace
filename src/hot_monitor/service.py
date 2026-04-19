@@ -69,6 +69,14 @@ class HotMonitorService:
             hot_items.append(clone)
         return hot_items
 
+    def _effective_kol_handles(self) -> list[str]:
+        handles = {h.strip().lstrip("@").lower() for h in self.settings.x_default_kol_handles if h.strip()}
+        for row in self.db.list_x_kol_whitelist_handles():
+            handle = str(row.get("handle") or "").strip().lstrip("@").lower()
+            if handle:
+                handles.add(handle)
+        return sorted(handles)
+
     def collect_and_analyze(self) -> dict[str, int]:
         inserted_raw_items = 0
         hotspots_detected = 0
@@ -138,7 +146,7 @@ class HotMonitorService:
             # X API is optional for MVP; failures should not stop news collection.
             pass
 
-        for handle in self.settings.x_default_kol_handles:
+        for handle in self._effective_kol_handles():
             try:
                 batch_items.extend(
                     self.x_client.fetch_user_recent_posts(
@@ -325,3 +333,12 @@ class HotMonitorService:
             self.telegram.send_message(message, parse_mode="MarkdownV2")
         except Exception:
             pass
+
+    def add_kol_whitelist_handle(self, handle: str) -> dict[str, Any]:
+        return self.db.add_x_kol_whitelist_handle(handle, source="telegram")
+
+    def remove_kol_whitelist_handle(self, handle: str) -> bool:
+        return self.db.remove_x_kol_whitelist_handle(handle)
+
+    def list_kol_whitelist_handles(self) -> list[dict[str, Any]]:
+        return self.db.list_x_kol_whitelist_handles()

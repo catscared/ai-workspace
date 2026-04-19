@@ -151,6 +151,9 @@ curl "http://127.0.0.1:8000/monitor-events?limit=50"
 - `/task_start`：恢复定时任务
 - `/task_stop`：暂停定时任务
 - `/status`：查看任务状态
+- `/kol_add <handle>`：添加 X KOL 白名单（动态生效）
+- `/kol_del <handle>`：删除 X KOL 白名单（动态生效）
+- `/kol_list`：查看当前白名单
 
 ### Telegram 推送模板（按来源分组）
 
@@ -161,6 +164,16 @@ curl "http://127.0.0.1:8000/monitor-events?limit=50"
 - 出处链接（`Link`）
 
 可通过 `GET /telegram/last-digest` 查看最近一次生成的消息体。
+
+### 动态 KOL 白名单接口（不改 .env、不重启）
+
+可通过 API 动态增删 KOL 白名单，采集任务下一轮立即生效：
+
+```bash
+curl http://127.0.0.1:8000/kols/whitelist
+curl -X POST http://127.0.0.1:8000/kols/whitelist -H "Content-Type: application/json" -d '{"handle":"aeyakovenko"}'
+curl -X DELETE http://127.0.0.1:8000/kols/whitelist/aeyakovenko
+```
 
 ## 如何开始用 Telegram 测试
 
