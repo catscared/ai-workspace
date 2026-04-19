@@ -43,7 +43,10 @@ class TaskController:
         if job is None:
             paused = True
         else:
-            paused = job.next_run_time is None
+            # APScheduler may return pending Job objects before scheduler starts,
+            # where next_run_time is not initialized yet.
+            next_run_time = getattr(job, "next_run_time", None)
+            paused = next_run_time is None
         return TaskState(
             scheduler_running=self.scheduler.running,
             collection_job_paused=paused,
