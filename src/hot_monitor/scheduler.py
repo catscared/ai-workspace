@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
@@ -35,3 +37,16 @@ def build_scheduler(service: HotMonitorService, settings: Settings) -> Backgroun
             replace_existing=True,
         )
     return scheduler
+
+
+def register_telegram_poll_job(
+    scheduler: BackgroundScheduler,
+    poller_callable: Callable[[], int],
+    settings: Settings,
+) -> None:
+    scheduler.add_job(
+        poller_callable,
+        IntervalTrigger(seconds=max(5, settings.telegram_poll_interval_seconds)),
+        id="telegram-command-poll",
+        replace_existing=True,
+    )

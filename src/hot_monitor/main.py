@@ -5,22 +5,31 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 
 from .config import settings
+from .controller import TaskController
 from .database import Database
 from .schemas import (
     BindKolRequest,
     CollectResult,
     KolCreate,
     KolResponse,
+    TaskControlResponse,
     WatchTargetCreate,
     WatchTargetResponse,
 )
-from .scheduler import build_scheduler
+from .scheduler import build_scheduler, register_telegram_poll_job
 from .service import HotMonitorService
 
 
 db = Database(settings.database_path)
 service = HotMonitorService(db, settings)
 scheduler = build_scheduler(service, settings)
+controller = TaskController(service=service, scheduler=scheduler, telegram=service.telegram)
+if service.telegram.enabled:
+    register_telegram_poll_job(
+        scheduler=scheduler,
+        poller_callable=controller.poll_telegram_commands,
+        settings=settings,
+    )
 
 
 @asynccontextmanager
@@ -105,6 +114,38 @@ def collect_now() -> dict[str, int]:
     return service.collect_and_analyze()
 
 
+@app.post("/tasks/stop", response_model=TaskControlResponse)
+def stop_collect_task() -> dict[str, str | bool]:
+    controller.pause_collection()
+    state = controller.get_state()
+    return {
+        "status": "paused",
+        "scheduler_running": state.scheduler_running,
+        "collection_job_paused": state.collection_job_paused,
+    }
+
+
+@app.post("/tasks/start", response_model=TaskControlResponse)
+def start_collect_task() -> dict[str, str | bool]:
+    controller.resume_collection()
+    state = controller.get_state()
+    return {
+        "status": "running",
+        "scheduler_running": state.scheduler_running,
+        "collection_job_paused": state.collection_job_paused,
+    }
+
+
+@app.get("/tasks/status", response_model=TaskControlResponse)
+def task_status() -> dict[str, str | bool]:
+    state = controller.get_state()
+    return {
+        "status": "paused" if state.collection_job_paused else "running",
+        "scheduler_running": state.scheduler_running,
+        "collection_job_paused": state.collection_job_paused,
+    }
+
+
 @app.get("/hotspots")
 def list_hotspots(limit: int = Query(default=50, ge=1, le=500)) -> list[dict]:
     return db.list_hotspots(limit=limit)
@@ -119,10 +160,17 @@ def list_monitor_events(
 
 
 @app.get("/config")
-def get_runtime_config() -> dict[str, int | str]:
+def get_runtime_config() -> dict[str, int | str | bool]:
     return {
         "collection_cron": settings.collection_cron,
         "collection_interval_minutes": settings.collection_interval_minutes,
         "kol_min_followers": settings.kol_min_followers,
         "x_max_results": settings.x_max_results,
+        "telegram_enabled": service.telegram.enabled,
+        "telegram_notify_on_collect": settings.telegram_notify_on_collect,
+        "llm_enabled": service.semantic_classifier.enabled,
+        "llm_model": settings.llm_model,
+        "defillama_enabled": settings.defillama_enabled,
+        "dune_query_ids": ",".join(settings.dune_query_ids),
+        "github_release_repos": ",".join(settings.github_release_repos),
     }

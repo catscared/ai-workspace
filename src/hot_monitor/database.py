@@ -75,6 +75,9 @@ class Database:
                     score REAL NOT NULL,
                     category TEXT NOT NULL,
                     summary TEXT NOT NULL,
+                    summary_zh TEXT NOT NULL DEFAULT '',
+                    summary_en TEXT NOT NULL DEFAULT '',
+                    confidence REAL NOT NULL DEFAULT 0,
                     created_at TEXT NOT NULL,
                     UNIQUE(raw_item_id),
                     FOREIGN KEY(raw_item_id) REFERENCES raw_items(id) ON DELETE CASCADE
@@ -94,6 +97,19 @@ class Database:
                 );
                 """
             )
+            self._ensure_hotspot_columns(conn)
+
+    @staticmethod
+    def _ensure_hotspot_columns(conn: sqlite3.Connection) -> None:
+        existing_cols = {
+            row["name"] for row in conn.execute("PRAGMA table_info(hotspots)").fetchall()
+        }
+        if "summary_zh" not in existing_cols:
+            conn.execute("ALTER TABLE hotspots ADD COLUMN summary_zh TEXT NOT NULL DEFAULT ''")
+        if "summary_en" not in existing_cols:
+            conn.execute("ALTER TABLE hotspots ADD COLUMN summary_en TEXT NOT NULL DEFAULT ''")
+        if "confidence" not in existing_cols:
+            conn.execute("ALTER TABLE hotspots ADD COLUMN confidence REAL NOT NULL DEFAULT 0")
 
     def create_watch_target(self, name: str, symbol: str | None, keywords: list[str]) -> dict[str, Any]:
         with self._get_conn() as conn:
@@ -242,7 +258,7 @@ class Database:
                 (source_type, external_id),
             ).fetchone()
             was_inserted = existing is None
-            cur = conn.execute(
+            conn.execute(
                 """
                 INSERT INTO raw_items (
                     source_type, external_id, author_handle, author_followers, title,
@@ -281,19 +297,33 @@ class Database:
             raise ValueError("Unable to persist raw item")
         return int(row["id"]), bool(was_inserted)
 
-    def upsert_hotspot(self, raw_item_id: int, score: float, category: str, summary: str) -> None:
+    def upsert_hotspot(
+        self,
+        raw_item_id: int,
+        score: float,
+        category: str,
+        summary: str,
+        summary_zh: str = "",
+        summary_en: str = "",
+        confidence: float = 0.0,
+    ) -> None:
         with self._get_conn() as conn:
             conn.execute(
                 """
-                INSERT INTO hotspots (raw_item_id, score, category, summary, created_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO hotspots (
+                    raw_item_id, score, category, summary, summary_zh, summary_en, confidence, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(raw_item_id) DO UPDATE SET
                     score = excluded.score,
                     category = excluded.category,
                     summary = excluded.summary,
+                    summary_zh = excluded.summary_zh,
+                    summary_en = excluded.summary_en,
+                    confidence = excluded.confidence,
                     created_at = excluded.created_at
                 """,
-                (raw_item_id, score, category, summary, _utc_now()),
+                (raw_item_id, score, category, summary, summary_zh, summary_en, confidence, _utc_now()),
             )
 
     def upsert_monitor_event(
@@ -322,6 +352,9 @@ class Database:
                     h.score,
                     h.category,
                     h.summary,
+                    h.summary_zh,
+                    h.summary_en,
+                    h.confidence,
                     h.created_at,
                     r.source_type,
                     r.external_id,

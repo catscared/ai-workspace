@@ -9,6 +9,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _to_bool(value: str | None, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _to_csv(value: str | None) -> tuple[str, ...]:
+    if not value:
+        return tuple()
+    return tuple(part.strip() for part in value.split(",") if part.strip())
+
+
 @dataclass(frozen=True)
 class Settings:
     app_name: str = "AI Blockchain Hotspot Monitor"
@@ -32,6 +44,21 @@ class Settings:
         ).split(",")
         if feed.strip()
     )
+    telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    telegram_chat_id: str = os.getenv("TELEGRAM_CHAT_ID", "")
+    telegram_poll_interval_seconds: int = int(os.getenv("TELEGRAM_POLL_INTERVAL_SECONDS", "20"))
+    telegram_notify_on_collect: bool = _to_bool(os.getenv("TELEGRAM_NOTIFY_ON_COLLECT"), True)
+
+    llm_api_base_url: str = os.getenv("LLM_API_BASE_URL", "https://api.openai.com/v1")
+    llm_api_key: str = os.getenv("LLM_API_KEY", "")
+    llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "20"))
+
+    dune_api_key: str = os.getenv("DUNE_API_KEY", "")
+    dune_query_ids: tuple[str, ...] = _to_csv(os.getenv("DUNE_QUERY_IDS"))
+    defillama_enabled: bool = _to_bool(os.getenv("DEFILLAMA_ENABLED"), True)
+    github_release_repos: tuple[str, ...] = _to_csv(os.getenv("GITHUB_RELEASE_REPOS"))
+    github_token: str = os.getenv("GITHUB_TOKEN", "")
 
 
 settings = Settings()

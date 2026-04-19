@@ -3,9 +3,14 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from .analyzer import evaluate_hotspot, relevance_score_for_target
+from .analyzer import relevance_score_for_target
 from .config import Settings
 from .database import Database
+from .integrations.llm_classifier import LlmSemanticClassifier
+from .integrations.telegram_bot import TelegramBotClient
+from .sources.defillama import fetch_defillama_items
+from .sources.dune import fetch_dune_items
+from .sources.github_releases import fetch_github_release_items
 from .sources.news_rss import fetch_news_items
 from .sources.x_client import XClient
 
@@ -16,6 +21,16 @@ class HotMonitorService:
         self.settings = settings
         self.x_client = XClient(settings.x_bearer_token)
         self._event_keys_seen_in_run: set[tuple[int, int | None, int]] = set()
+        self.telegram = TelegramBotClient(
+            token=settings.telegram_bot_token,
+            default_chat_id=settings.telegram_chat_id,
+        )
+        self.semantic_classifier = LlmSemanticClassifier(
+            api_base_url=settings.llm_api_base_url,
+            api_key=settings.llm_api_key,
+            model=settings.llm_model,
+            timeout_seconds=settings.llm_timeout_seconds,
+        )
 
     def _default_x_query(self) -> str:
         return (
@@ -31,6 +46,29 @@ class HotMonitorService:
 
         batch_items: list[dict[str, Any]] = []
         batch_items.extend(fetch_news_items(self.settings.news_rss_feeds))
+        if self.settings.defillama_enabled:
+            try:
+                batch_items.extend(fetch_defillama_items())
+            except Exception:
+                pass
+        try:
+            batch_items.extend(
+                fetch_dune_items(
+                    api_key=self.settings.dune_api_key,
+                    query_ids=self.settings.dune_query_ids,
+                )
+            )
+        except Exception:
+            pass
+        try:
+            batch_items.extend(
+                fetch_github_release_items(
+                    repos=self.settings.github_release_repos,
+                    token=self.settings.github_token,
+                )
+            )
+        except Exception:
+            pass
 
         try:
             batch_items.extend(
@@ -66,18 +104,21 @@ class HotMonitorService:
             if was_inserted:
                 inserted_raw_items += 1
 
-            decision = evaluate_hotspot(
+            semantic = self.semantic_classifier.classify(
                 title=item.get("title"),
                 content=item.get("content"),
                 source_type=item.get("source_type", "unknown"),
                 engagement=item.get("engagement", 0),
             )
-            if decision.is_hotspot:
+            if semantic.is_ai_blockchain_adoption:
                 self.db.upsert_hotspot(
                     raw_item_id=raw_item_id,
-                    score=decision.score,
-                    category=decision.category,
-                    summary=decision.summary,
+                    score=round(semantic.confidence * 10, 3),
+                    category=semantic.category,
+                    summary=f"{semantic.summary_zh} | {semantic.summary_en}",
+                    summary_zh=semantic.summary_zh,
+                    summary_en=semantic.summary_en,
+                    confidence=semantic.confidence,
                 )
                 hotspots_detected += 1
 
@@ -126,8 +167,23 @@ class HotMonitorService:
                     self._event_keys_seen_in_run.add(event_key)
                     monitor_events_detected += 1
 
-        return {
+        result = {
             "inserted_raw_items": inserted_raw_items,
             "hotspots_detected": hotspots_detected,
             "monitor_events_detected": monitor_events_detected,
         }
+        if self.settings.telegram_notify_on_collect:
+            self._notify_collect_result(result)
+        return result
+
+    def _notify_collect_result(self, result: dict[str, int]) -> None:
+        text = (
+            "Hot Monitor collected.\n"
+            f"raw_items={result['inserted_raw_items']}, "
+            f"hotspots={result['hotspots_detected']}, "
+            f"monitor_events={result['monitor_events_detected']}"
+        )
+        try:
+            self.telegram.send_message(text)
+        except Exception:
+            pass

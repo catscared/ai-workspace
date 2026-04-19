@@ -19,3 +19,13 @@ def test_relevance_score_for_target() -> None:
         keywords=["bittensor", "tao", "subnet"],
     )
     assert score == 1.0
+
+
+def test_evaluate_hotspot_non_ai_content() -> None:
+    decision = evaluate_hotspot(
+        title="Random market summary",
+        content="Traditional finance broad market moved today.",
+        source_type="news",
+        engagement=0,
+    )
+    assert decision.is_hotspot is False

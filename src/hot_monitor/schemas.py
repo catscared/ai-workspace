@@ -43,3 +43,9 @@ class CollectResult(BaseModel):
     inserted_raw_items: int
     hotspots_detected: int
     monitor_events_detected: int
+
+
+class TaskControlResponse(BaseModel):
+    status: str
+    scheduler_running: bool
+    collection_job_paused: bool

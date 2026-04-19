@@ -2,20 +2,26 @@
 
 这是一个可运行的 MVP，用于实现你提到的需求：
 
-- 抓取 **AI 相关区块链热点应用落地信息**（新闻 + X 平台）
+- 抓取 **AI 相关区块链热点应用落地信息**（新闻 + X + Dune + DefiLlama + GitHub Release）
 - 支持 **每日定时** 或 **按分钟间隔** 自动采集
 - 支持添加 **项目/代币监控目标**
 - 支持添加并绑定 **X 上 KOL（followers > 20w）**，进行热点监控
+- 支持 **Telegram 推送 + Telegram 指令控制任务启停**
+- 支持 **中英双语 LLM 语义分类**（无 Key 自动降级规则分类）
 
 ## 功能概览
 
 1. **数据源**
    - 区块链新闻 RSS（默认 CoinDesk / Cointelegraph / Decrypt）
    - X API（Recent Search + 指定 KOL 账号 recent posts）
+   - Dune Query 结果（可配置 query ids）
+   - DefiLlama 协议数据快照
+   - GitHub Release（可配置 repo 列表）
 
 2. **热点识别**
-   - 内置 AI + 区块链关键词打分
-   - 输出热点类别、热点分数、摘要
+   - LLM 语义分类（中英双语摘要 + adoption 判定 + 置信度）
+   - 无 LLM Key 时自动使用规则关键词分类
+   - 输出热点类别、分数、双语摘要
 
 3. **监控能力**
    - 可配置项目/代币关键词（watch target）
@@ -25,6 +31,10 @@
 4. **调度模式**
    - Cron（例如每天 08:00 UTC）
    - 或 interval（例如每 30 分钟）
+
+5. **控制面**
+   - HTTP 接口控制任务：`/tasks/start`、`/tasks/stop`、`/tasks/status`
+   - Telegram 指令控制任务：`/task_start`、`/task_stop`、`/status`、`/collect`
 
 ## 技术栈
 
@@ -54,6 +64,10 @@ cp .env.example .env
 - `COLLECTION_CRON`：cron 表达式（UTC）
 - `COLLECTION_INTERVAL_MINUTES`：若 > 0，则优先使用 interval 调度
 - `KOL_MIN_FOLLOWERS`：KOL 最低粉丝阈值，默认 200000
+- `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`：Telegram 消息推送和指令控制
+- `LLM_API_KEY` / `LLM_MODEL`：中英双语语义分类模型
+- `DUNE_API_KEY` + `DUNE_QUERY_IDS`：Dune 数据源
+- `GITHUB_RELEASE_REPOS`：GitHub Release 监控仓库列表
 
 ### 3) 启动服务
 
@@ -107,6 +121,14 @@ curl -X POST http://127.0.0.1:8000/targets/1/kols \
 curl -X POST http://127.0.0.1:8000/collect
 ```
 
+### 通过 HTTP 控制任务启停
+
+```bash
+curl -X POST http://127.0.0.1:8000/tasks/stop
+curl -X POST http://127.0.0.1:8000/tasks/start
+curl http://127.0.0.1:8000/tasks/status
+```
+
 ### 查看热点与监控事件
 
 ```bash
@@ -114,17 +136,33 @@ curl "http://127.0.0.1:8000/hotspots?limit=20"
 curl "http://127.0.0.1:8000/monitor-events?limit=50"
 ```
 
+### Telegram 指令
+
+给 bot 发送以下指令：
+
+- `/collect`：立即采集
+- `/task_start`：恢复定时任务
+- `/task_stop`：暂停定时任务
+- `/status`：查看任务状态
+
 ## 项目结构
 
 ```text
 src/hot_monitor/
   analyzer.py            # 热点识别与相关性打分
   config.py              # 环境变量配置
+  controller.py          # 任务启停与 Telegram 指令控制
   database.py            # SQLite schema 与 DAO
+  integrations/
+    llm_classifier.py    # 中英双语 LLM 语义分类
+    telegram_bot.py      # Telegram 推送与命令轮询
   main.py                # FastAPI 入口
   scheduler.py           # 定时任务
   service.py             # 采集、分析、入库、关联监控主流程
   sources/
+    defillama.py         # DefiLlama 数据抓取
+    dune.py              # Dune 查询结果抓取
+    github_releases.py   # GitHub Release 抓取
     news_rss.py          # RSS 新闻抓取
     x_client.py          # X API 客户端
 ```
