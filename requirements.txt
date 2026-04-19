@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+apscheduler
+feedparser
+httpx
+pydantic
+python-dotenv
+python-dateutil
+pytest
