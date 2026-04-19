@@ -76,10 +76,17 @@ class TaskController:
             except Exception as exc:
                 response = f"[{receipt_id}] 任务执行失败：{exc}"
             if cmd == "/collect" and response:
+                push_status = self.service.get_last_digest_push_status()
+                push_note = self.service.get_last_digest_push_note()
+                push_msg = (
+                    "热点消息推送成功。"
+                    if push_status == "success"
+                    else f"热点消息推送失败：{push_note or 'unknown error'}"
+                )
                 response = (
                     f"[{receipt_id}] 任务完成：\n"
                     f"{response}\n\n"
-                    f"[{receipt_id}] 热点消息已推送。"
+                    f"[{receipt_id}] {push_msg}"
                 )
             if response:
                 try:
@@ -100,11 +107,17 @@ class TaskController:
             return "Collection task resumed."
         if cmd == "/collect":
             result = self.service.collect_and_analyze()
+            push_status_fn = getattr(self.service, "get_last_digest_push_status", None)
+            push_note_fn = getattr(self.service, "get_last_digest_push_note", None)
+            push_status = push_status_fn() if callable(push_status_fn) else "unknown"
+            push_note = push_note_fn() if callable(push_note_fn) else ""
             return (
                 "Collected now.\n"
                 f"raw_items={result['inserted_raw_items']}, "
                 f"hotspots={result['hotspots_detected']}, "
-                f"monitor_events={result['monitor_events_detected']}"
+                f"monitor_events={result['monitor_events_detected']}, "
+                f"digest_push={push_status}"
+                + (f" ({push_note})" if push_note else "")
             )
         if cmd == "/kol_add":
             if not args:

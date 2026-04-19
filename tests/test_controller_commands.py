@@ -30,6 +30,12 @@ class _ServiceStub:
     def collect_and_analyze(self) -> dict[str, int]:
         return {"inserted_raw_items": 7, "hotspots_detected": 3, "monitor_events_detected": 2}
 
+    def get_last_digest_push_status(self) -> str:
+        return "success"
+
+    def get_last_digest_push_note(self) -> str:
+        return ""
+
 
 def test_collect_command_with_suffix_text() -> None:
     controller = TaskController(
@@ -44,6 +50,24 @@ def test_collect_command_with_suffix_text() -> None:
 
 def test_extract_command_handles_suffix_tokens() -> None:
     assert TaskController._extract_command("/collect now please") == "/collect"
+
+
+def test_collect_completion_message_includes_push_status() -> None:
+    class _ServiceWithPush(_ServiceStub):
+        def get_last_digest_push_status(self) -> str:
+            return "failed"
+
+        def get_last_digest_push_note(self) -> str:
+            return "telegram markdown parse error"
+
+    controller = TaskController(
+        service=_ServiceWithPush(),
+        scheduler=_SchedulerStub(),
+        telegram=TelegramBotClient(token=""),
+    )
+    resp = controller._handle_command("/collect")
+    assert "digest_push=failed" in resp
+    assert "telegram markdown parse error" in resp
 
 
 def test_kol_whitelist_commands() -> None:

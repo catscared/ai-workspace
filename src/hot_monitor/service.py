@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import re
 from copy import deepcopy
 from typing import Any
 
@@ -35,6 +36,8 @@ class HotMonitorService:
             timeout_seconds=settings.llm_timeout_seconds,
         )
         self._last_telegram_digest = ""
+        self._last_digest_push_status = "unknown"
+        self._last_digest_push_note = ""
 
     @staticmethod
     def _escape_markdown_v2(text: str) -> str:
@@ -266,11 +269,22 @@ class HotMonitorService:
         }
         self._last_telegram_digest = self._build_hotspot_digest(hotspots=run_hotspots)
         if self.settings.telegram_notify_on_collect:
-            self._notify_collect_result(self._last_telegram_digest)
+            success, note = self._notify_collect_result(self._last_telegram_digest)
+            self._last_digest_push_status = "success" if success else "failed"
+            self._last_digest_push_note = note or ""
+        else:
+            self._last_digest_push_status = "disabled"
+            self._last_digest_push_note = "telegram_notify_on_collect is false"
         return result
 
     def get_last_telegram_digest(self) -> str:
         return self._last_telegram_digest
+
+    def get_last_digest_push_status(self) -> str:
+        return self._last_digest_push_status
+
+    def get_last_digest_push_note(self) -> str:
+        return self._last_digest_push_note
 
     def _build_hotspot_digest(self, *, hotspots: list[dict[str, Any]]) -> str:
         ranked_all = sorted(
@@ -328,11 +342,22 @@ class HotMonitorService:
             return message[:3790] + "\n\\.\\.\\."
         return message
 
-    def _notify_collect_result(self, message: str) -> None:
+    @staticmethod
+    def _markdown_to_plain_text(message: str) -> str:
+        plain = re.sub(r"\[(.*?)\]\((.*?)\)", r"\1 (\2)", message)
+        return plain.replace("\\", "")
+
+    def _notify_collect_result(self, message: str) -> tuple[bool, str]:
         try:
             self.telegram.send_message(message, parse_mode="MarkdownV2")
-        except Exception:
-            pass
+            return True, "markdown"
+        except Exception as exc:
+            fallback = self._markdown_to_plain_text(message)
+            try:
+                self.telegram.send_message(fallback)
+                return True, f"fallback_plaintext_after_markdown_error: {exc}"
+            except Exception as fallback_exc:
+                return False, str(fallback_exc)
 
     def add_kol_whitelist_handle(self, handle: str) -> dict[str, Any]:
         return self.db.add_x_kol_whitelist_handle(handle, source="telegram")
@@ -342,3 +367,9 @@ class HotMonitorService:
 
     def list_kol_whitelist_handles(self) -> list[dict[str, Any]]:
         return self.db.list_x_kol_whitelist_handles()
+
+    def get_last_digest_push_meta(self) -> dict[str, str]:
+        return {
+            "status": self._last_digest_push_status,
+            "note": self._last_digest_push_note,
+        }

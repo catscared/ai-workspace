@@ -182,7 +182,11 @@ def list_monitor_events(
 
 @app.get("/telegram/last-digest")
 def get_last_telegram_digest() -> dict[str, str]:
-    return {"message": service.get_last_telegram_digest()}
+    return {
+        "message": service.get_last_telegram_digest(),
+        "push_status": service.get_last_digest_push_status(),
+        "push_note": service.get_last_digest_push_note(),
+    }
 
 
 @app.get("/config")
@@ -195,6 +199,8 @@ def get_runtime_config() -> dict[str, int | str | bool]:
         "telegram_enabled": service.telegram.enabled,
         "telegram_notify_on_collect": settings.telegram_notify_on_collect,
         "telegram_hotspot_push_limit": settings.telegram_hotspot_push_limit,
+        "last_digest_push_status": service.get_last_digest_push_status(),
+        "last_digest_push_note": service.get_last_digest_push_note(),
         "llm_enabled": service.semantic_classifier.enabled,
         "llm_model": settings.llm_model,
         "defillama_enabled": settings.defillama_enabled,
