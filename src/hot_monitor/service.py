@@ -35,6 +35,13 @@ class HotMonitorService:
         )
         self._last_telegram_digest = ""
 
+    @staticmethod
+    def _escape_markdown_v2(text: str) -> str:
+        escaped = text
+        for char in "\\_*[]()~`>#+-=|{}.!":
+            escaped = escaped.replace(char, f"\\{char}")
+        return escaped
+
     def _default_x_query(self) -> str:
         return (
             "(ai OR agent OR llm OR zkml OR depin OR compute) "
@@ -273,7 +280,11 @@ class HotMonitorService:
                     evidence_link = evidence_link[:400].rstrip() + "..."
                 lines.extend(
                     [
-                        f"{idx}) 标题: {title} ({evidence_link})",
+                        (
+                            f"{idx}\\) 标题: "
+                            f"[{self._escape_markdown_v2(title)}]"
+                            f"({self._escape_markdown_v2(evidence_link)})"
+                        ),
                         "   AI观点:",
                         f"   事件要点（中文解读）:\n{hotspot.get('event_zh') or '暂无事件解读'}",
                         f"   AI深度观点:\n{hotspot.get('insight_zh') or hotspot.get('summary_zh') or '暂无AI观点'}",
@@ -281,11 +292,11 @@ class HotMonitorService:
                 )
         message = "\n".join(lines).strip()
         if len(message) > 3800:
-            return message[:3790] + "\n..."
+            return message[:3790] + "\n\\.\\.\\."
         return message
 
     def _notify_collect_result(self, message: str) -> None:
         try:
-            self.telegram.send_message(message)
+            self.telegram.send_message(message, parse_mode="MarkdownV2")
         except Exception:
             pass

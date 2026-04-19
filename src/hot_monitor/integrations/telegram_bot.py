@@ -25,13 +25,25 @@ class TelegramBotClient:
     def enabled(self) -> bool:
         return bool(self.token)
 
-    def send_message(self, text: str, chat_id: str | None = None) -> bool:
+    def send_message(
+        self,
+        text: str,
+        chat_id: str | None = None,
+        parse_mode: str | None = None,
+        disable_web_page_preview: bool = False,
+    ) -> bool:
         if not self.enabled:
             return False
         target_chat = (chat_id or self.default_chat_id).strip()
         if not target_chat:
             return False
-        payload = {"chat_id": target_chat, "text": text}
+        payload: dict[str, Any] = {
+            "chat_id": target_chat,
+            "text": text,
+            "disable_web_page_preview": disable_web_page_preview,
+        }
+        if parse_mode:
+            payload["parse_mode"] = parse_mode
         with httpx.Client(timeout=self.timeout_seconds) as client:
             response = client.post(f"{self.base_url}/sendMessage", json=payload)
             response.raise_for_status()
@@ -45,7 +57,14 @@ class TelegramBotClient:
             params["offset"] = offset
         with httpx.Client(timeout=self.timeout_seconds + timeout) as client:
             response = client.get(f"{self.base_url}/getUpdates", params=params)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                # Telegram returns 409 when another getUpdates call is in progress.
+                # Skip this poll cycle to keep bot command loop alive.
+                if exc.response is not None and exc.response.status_code == 409:
+                    return []
+                raise
             payload = response.json()
         updates: list[TelegramUpdate] = []
         for item in payload.get("result", []):

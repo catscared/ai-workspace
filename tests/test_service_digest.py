@@ -25,7 +25,7 @@ def test_build_hotspot_digest_includes_title_insight_and_link() -> None:
             }
         ],
     )
-    assert "标题: Test signal (https://example.com/signal)" in message
+    assert "标题: [Test signal](https://example\\.com/signal)" in message
     assert "事件要点（中文解读）:\n这是中文事件要点" in message
     assert "AI深度观点:\n这是中文深度观点" in message
 

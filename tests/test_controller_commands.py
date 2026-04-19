@@ -40,3 +40,7 @@ def test_collect_command_with_suffix_text() -> None:
     response = controller._handle_command("/collect 立即执行一次抓取")
     assert "Collected now." in response
     assert "raw_items=7" in response
+
+
+def test_extract_command_handles_suffix_tokens() -> None:
+    assert TaskController._extract_command("/collect now please") == "/collect"

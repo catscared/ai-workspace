@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 from dataclasses import dataclass
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -62,10 +63,24 @@ class TaskController:
         handled = 0
         for update in updates:
             self._telegram_offset = update.update_id + 1
+            cmd = self._extract_command(update.text)
+            receipt_id = self._build_receipt_id()
+            if cmd == "/collect":
+                start_message = f"[{receipt_id}] 任务已启动：正在执行抓取与分析..."
+                try:
+                    self.telegram.send_message(start_message, chat_id=update.chat_id)
+                except Exception:
+                    pass
             try:
                 response = self._handle_command(update.text)
             except Exception as exc:
-                response = f"Command failed: {exc}"
+                response = f"[{receipt_id}] 任务执行失败：{exc}"
+            if cmd == "/collect" and response:
+                response = (
+                    f"[{receipt_id}] 任务完成：\n"
+                    f"{response}\n\n"
+                    f"[{receipt_id}] 热点消息已推送。"
+                )
             if response:
                 try:
                     self.telegram.send_message(response, chat_id=update.chat_id)
@@ -104,3 +119,7 @@ class TaskController:
         if not stripped:
             return ""
         return stripped.split()[0]
+
+    @staticmethod
+    def _build_receipt_id() -> str:
+        return secrets.token_hex(4).upper()
