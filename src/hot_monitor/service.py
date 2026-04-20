@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import datetime, timezone
 import re
 from copy import deepcopy
 from typing import Any
+
+import httpx
 
 from .analyzer import relevance_score_for_target
 from .config import Settings
@@ -38,6 +41,110 @@ class HotMonitorService:
         self._last_telegram_digest = ""
         self._last_digest_push_status = "unknown"
         self._last_digest_push_note = ""
+        self._x_health_state = self._new_x_health_state()
+
+    def _new_x_health_state(self) -> dict[str, Any]:
+        if not self.x_client.enabled:
+            return {
+                "enabled": False,
+                "status": "disabled",
+                "available": False,
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "successful_calls": 0,
+                "failed_calls": 0,
+                "last_error_code": "",
+                "last_error": "X_BEARER_TOKEN is empty",
+                "last_success_source": "",
+            }
+        return {
+            "enabled": True,
+            "status": "unknown",
+            "available": False,
+            "checked_at": "",
+            "successful_calls": 0,
+            "failed_calls": 0,
+            "last_error_code": "",
+            "last_error": "",
+            "last_success_source": "",
+        }
+
+    @staticmethod
+    def _format_x_error(exc: Exception) -> tuple[str, str]:
+        if isinstance(exc, httpx.HTTPStatusError):
+            code = str(exc.response.status_code)
+            message = ""
+            try:
+                payload = exc.response.json()
+                if isinstance(payload, dict):
+                    errors = payload.get("errors")
+                    if isinstance(errors, list) and errors:
+                        first = errors[0]
+                        if isinstance(first, dict):
+                            message = str(first.get("message") or first.get("detail") or "")
+                    if not message:
+                        message = str(payload.get("detail") or payload.get("title") or "")
+            except Exception:
+                message = ""
+            if not message:
+                message = str(exc).strip()
+            if not message:
+                message = exc.response.text[:240]
+            return code, message[:240]
+        return "", str(exc)[:240]
+
+    def _reset_x_health_state(self) -> None:
+        self._x_health_state = self._new_x_health_state()
+        if self.x_client.enabled:
+            self._x_health_state["checked_at"] = datetime.now(timezone.utc).isoformat()
+
+    def _record_x_success(self, source: str) -> None:
+        if not self.x_client.enabled:
+            return
+        self._x_health_state["successful_calls"] = int(self._x_health_state["successful_calls"]) + 1
+        self._x_health_state["available"] = True
+        self._x_health_state["last_success_source"] = source
+        self._x_health_state["checked_at"] = datetime.now(timezone.utc).isoformat()
+        self._x_health_state["status"] = (
+            "degraded" if int(self._x_health_state["failed_calls"]) > 0 else "ok"
+        )
+
+    def _record_x_failure(self, source: str, exc: Exception) -> None:
+        if not self.x_client.enabled:
+            return
+        self._x_health_state["failed_calls"] = int(self._x_health_state["failed_calls"]) + 1
+        error_code, error_message = self._format_x_error(exc)
+        self._x_health_state["last_error_code"] = error_code
+        self._x_health_state["last_error"] = f"{source}: {error_message}" if error_message else source
+        self._x_health_state["checked_at"] = datetime.now(timezone.utc).isoformat()
+        self._x_health_state["status"] = (
+            "degraded" if int(self._x_health_state["successful_calls"]) > 0 else "error"
+        )
+
+    def _safe_fetch_x_items(self, source: str, fetcher: Any) -> list[dict[str, Any]]:
+        if not self.x_client.enabled:
+            return []
+        try:
+            items = fetcher()
+        except Exception as exc:
+            self._record_x_failure(source, exc)
+            return []
+        self._record_x_success(source)
+        return items
+
+    def get_x_health(self, *, probe: bool = False) -> dict[str, Any]:
+        if probe:
+            self._reset_x_health_state()
+            if self.x_client.enabled:
+                _ = self._safe_fetch_x_items(
+                    "x_probe",
+                    lambda: self.x_client.search_recent_posts(
+                        query=self._default_x_query(),
+                        max_results=max(10, min(self.settings.x_max_results, 20)),
+                    ),
+                )
+        if not self.x_client.enabled:
+            self._x_health_state = self._new_x_health_state()
+        return dict(self._x_health_state)
 
     @staticmethod
     def _escape_markdown_v2(text: str) -> str:
@@ -85,6 +192,7 @@ class HotMonitorService:
         hotspots_detected = 0
         monitor_events_detected = 0
         self._event_keys_seen_in_run.clear()
+        self._reset_x_health_state()
         run_hotspots: list[dict[str, Any]] = []
 
         batch_items: list[dict[str, Any]] = []
@@ -138,27 +246,26 @@ class HotMonitorService:
             except Exception:
                 pass
 
-        try:
-            batch_items.extend(
-                self.x_client.search_recent_posts(
+        batch_items.extend(
+            self._safe_fetch_x_items(
+                "x_search_recent",
+                lambda: self.x_client.search_recent_posts(
                     query=self._default_x_query(),
                     max_results=self.settings.x_max_results,
-                )
+                ),
             )
-        except Exception:
-            # X API is optional for MVP; failures should not stop news collection.
-            pass
+        )
 
         for handle in self._effective_kol_handles():
-            try:
-                batch_items.extend(
-                    self.x_client.fetch_user_recent_posts(
-                        handle,
+            batch_items.extend(
+                self._safe_fetch_x_items(
+                    f"x_kol:{handle}",
+                    lambda h=handle: self.x_client.fetch_user_recent_posts(
+                        h,
                         max_results=self.settings.x_kol_max_results,
-                    )
+                    ),
                 )
-            except Exception:
-                continue
+            )
 
         targets = self.db.list_watch_targets()
         kols = self.db.list_kol_accounts(min_followers=self.settings.kol_min_followers)
@@ -169,14 +276,14 @@ class HotMonitorService:
 
         # Also fetch timelines from configured KOLs.
         for kol in kols:
-            try:
-                batch_items.extend(
-                    self.x_client.fetch_user_recent_posts(
-                        kol["handle"], max_results=self.settings.x_max_results
-                    )
+            batch_items.extend(
+                self._safe_fetch_x_items(
+                    f"x_target_kol:{kol['handle']}",
+                    lambda h=kol["handle"]: self.x_client.fetch_user_recent_posts(
+                        h, max_results=self.settings.x_max_results
+                    ),
                 )
-            except Exception:
-                continue
+            )
 
         # Build a separate "hot posts" stream after all KOL posts are loaded.
         batch_items.extend(self._extract_hot_kol_posts(batch_items))

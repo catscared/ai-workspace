@@ -85,6 +85,7 @@ PYTHONPATH=src uvicorn hot_monitor.main:app --host 0.0.0.0 --port 8000
 访问：
 
 - `GET /health`
+- `GET /x/health`（查看 X 数据源健康状态）
 - `GET /docs`（Swagger）
 
 ## API 示例
@@ -142,6 +143,25 @@ curl http://127.0.0.1:8000/tasks/status
 curl "http://127.0.0.1:8000/hotspots?limit=20"
 curl "http://127.0.0.1:8000/monitor-events?limit=50"
 ```
+
+### 查看 X 数据源健康状态（推荐排障）
+
+```bash
+# 读取最近一次 X 采集状态（不主动请求 X API）
+curl "http://127.0.0.1:8000/x/health"
+
+# 主动探测一次 X API 可用性（会立即发起一次 X 查询）
+curl "http://127.0.0.1:8000/x/health?probe=true"
+
+# 查看运行配置与关键状态（包含 x_health_status / x_last_error_code）
+curl "http://127.0.0.1:8000/config"
+```
+
+常见字段说明：
+- `x_health_status`: `ok` / `degraded` / `error` / `disabled`
+- `x_available`: 最近一次运行中是否有成功的 X 调用
+- `x_last_error_code`: 最近一次 X 错误 HTTP 状态码（如 `402`）
+- `x_last_error`: 最近一次 X 错误摘要（便于定位权限或额度问题）
 
 ### Telegram 指令
 

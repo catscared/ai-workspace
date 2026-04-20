@@ -189,13 +189,25 @@ def get_last_telegram_digest() -> dict[str, str]:
     }
 
 
+@app.get("/x/health")
+def get_x_health(probe: bool = Query(default=False, description="Actively probe X API")) -> dict:
+    return service.get_x_health(probe=probe)
+
+
 @app.get("/config")
 def get_runtime_config() -> dict[str, int | str | bool]:
+    x_health = service.get_x_health()
     return {
         "collection_cron": settings.collection_cron,
         "collection_interval_minutes": settings.collection_interval_minutes,
         "kol_min_followers": settings.kol_min_followers,
         "x_max_results": settings.x_max_results,
+        "x_enabled": bool(x_health.get("enabled")),
+        "x_health_status": str(x_health.get("status") or "unknown"),
+        "x_available": bool(x_health.get("available")),
+        "x_last_error_code": str(x_health.get("last_error_code") or ""),
+        "x_last_error": str(x_health.get("last_error") or ""),
+        "x_last_checked_at": str(x_health.get("checked_at") or ""),
         "telegram_enabled": service.telegram.enabled,
         "telegram_notify_on_collect": settings.telegram_notify_on_collect,
         "telegram_hotspot_push_limit": settings.telegram_hotspot_push_limit,
